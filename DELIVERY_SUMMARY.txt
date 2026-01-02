@@ -217,7 +217,7 @@ VAULT MANAGEMENT
   ✓ Access logging
 
 VERSIONING & LIFECYCLE
-  ✓ Automatic version increment on save (v001 → v002)
+  ✓ User-driven versioning: "Create Version" button creates v001 → v002 (not automatic)
   ✓ Lifecycle states: In-Work → Released → Obsolete
   ✓ Revision letters (v003A, v003B) for released versions
   ✓ Promotion workflow (In-Work → Released)

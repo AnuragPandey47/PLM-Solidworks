@@ -242,6 +242,33 @@ class PLMCLI:
             print(f"✗ Error promoting version: {e}")
             return 1
     
+    def cmd_version_freeze(self, file_id: int, version_num: int, user: str):
+        """Freeze version (make read-only) and release lock
+        
+        Usage: plm version freeze --file-id 5 --version 3 --user john.smith
+        """
+        try:
+            file = self.db.get_file(file_id)
+            if not file:
+                print(f"✗ File {file_id} not found")
+                return 1
+            
+            # Freeze the version
+            success = self.db.freeze_version(file_id, version_num, user)
+            
+            if success:
+                print(f"✓ Version v{version_num} frozen (Released/Read-Only)")
+                print(f"  File: {file['file_name']}")
+                print(f"  Frozen by: {user}")
+                print(f"  Lock automatically released")
+                return 0
+            else:
+                print(f"✗ Failed to freeze version")
+                return 1
+        except Exception as e:
+            print(f"✗ Error freezing version: {e}")
+            return 1
+    
     # ========================
     # ASSEMBLY COMMANDS
     # ========================

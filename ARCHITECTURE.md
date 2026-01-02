@@ -569,7 +569,8 @@ Engineer clicks: "Promote to Released"
 ```
 Before Release:
   • User can edit file
-  • Each save increments version (v001, v002, v003)
+  • User-driven versions: Explicit "Create Version" creates v001, v002, v003
+  • Regular saves update local file without creating versions
 
 After Release to v003A:
   • User cannot edit current file
