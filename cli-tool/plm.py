@@ -28,7 +28,9 @@ from database.db import PLMDatabase
 class PLMCLI:
     """Command-line interface for PLM operations"""
     
-    def __init__(self, vault_path: str = r"e:\PLM_VAULT"):
+    def __init__(self, vault_path: Optional[str] = None):
+        if not vault_path:
+            vault_path = os.getenv("PLM_VAULT_PATH", r"e:\PLM_VAULT")
         self.vault_path = vault_path
         self.db = PLMDatabase(vault_path)
     

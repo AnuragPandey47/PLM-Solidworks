@@ -38,33 +38,43 @@ def check_environment():
     
     # 3. Check vault path
     print(f"\n[3/5] Vault path...")
-    vault_path = Path(r"e:\PLM_VAULT")
-    if vault_path.drive:
-        print(f"  ✓ Vault path: {vault_path}")
+    try:
+        # Check environment variable first, then default
+        vault_path_env = os.getenv("PLM_VAULT_PATH", r"e:\PLM_VAULT")
+        vault_path = Path(vault_path_env)
+        print(f"  ✓ Vault path: {vault_path_env}")
         
         # Check if path exists
         if vault_path.exists():
-            if (vault_path / "db.sqlite").exists():
-                warnings.append("Vault already exists at e:\\PLM_VAULT")
+            if (vault_path / "plm.sqlite").exists():
+                print(f"    (Exists - ready to use)")
             else:
                 print(f"    (Directory exists but not initialized)")
         else:
             print(f"    (Will be created by SETUP.py)")
-    else:
-        issues.append("Invalid vault path: e:\\PLM_VAULT")
+    except Exception as e:
+        issues.append(f"Vault path error: {e}")
     
     # 4. Check disk space
     print(f"\n[4/5] Disk space...")
     try:
         import shutil
-        stat = shutil.disk_usage(vault_path.drive)
-        free_gb = stat.free / (1024 ** 3)
-        print(f"  ✓ Free space: {free_gb:.1f} GB")
+        vault_path_env = os.getenv("PLM_VAULT_PATH", r"e:\PLM_VAULT")
+        vault_path_obj = Path(vault_path_env)
+        drive = vault_path_obj.drive if vault_path_obj.drive else vault_path_env.split('\\')[0]
         
-        if free_gb < 1:
-            issues.append(f"Not enough disk space (need 1+ GB, have {free_gb:.1f} GB)")
-        elif free_gb < 5:
-            warnings.append(f"Low disk space ({free_gb:.1f} GB)")
+        # Try to get disk usage
+        if drive and Path(drive).exists():
+            stat = shutil.disk_usage(drive)
+            free_gb = stat.free / (1024 ** 3)
+            print(f"  ✓ {drive}: {free_gb:.1f} GB free")
+            
+            if free_gb < 1:
+                issues.append(f"Not enough disk space (need 1+ GB, have {free_gb:.1f} GB)")
+            elif free_gb < 5:
+                warnings.append(f"Low disk space ({free_gb:.1f} GB)")
+        else:
+            warnings.append(f"Vault drive not accessible: {drive}")
     except Exception as e:
         warnings.append(f"Could not check disk space: {e}")
     
@@ -73,11 +83,13 @@ def check_environment():
     try:
         import platform
         os_name = platform.system()
-        win_version = platform.win32_ver()[1]  # e.g., '10'
+        win_version_full = platform.win32_ver()[1]  # e.g., '10.0.19045'
         
         if os_name == "Windows":
-            print(f"  ✓ Windows {win_version}")
-            if float(win_version) < 10:
+            # Extract major version (e.g., 10.0.19045 -> 10)
+            major_version = float(win_version_full.split('.')[0]) if win_version_full else 0
+            print(f"  ✓ Windows {win_version_full}")
+            if major_version < 10:
                 warnings.append("Windows 10+ recommended")
         else:
             issues.append(f"PLM requires Windows (detected {os_name})")

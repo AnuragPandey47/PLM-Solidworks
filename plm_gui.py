@@ -25,13 +25,19 @@ class PLMGUI:
         self.root.geometry("1200x700")
         
         # Initialize database
-        vault_path = Path(r"e:\PLM_VAULT")
+        vault_path_str = os.getenv("PLM_VAULT_PATH", r"e:\PLM_VAULT")
+        vault_path = Path(vault_path_str)
         if not vault_path.exists():
-            messagebox.showerror("Error", "PLM vault not found. Run SETUP.py first.")
+            messagebox.showerror("Error", f"PLM vault not found at {vault_path_str}\n\nRun SETUP.py first to initialize.")
             sys.exit(1)
         
         self.db = PLMDatabase(str(vault_path))
         self.current_user = os.getenv("USERNAME", "Unknown")
+        
+        # Initialize combo boxes as None (will be created in tabs)
+        self.project_combo = None
+        self.file_combo = None
+        self.audit_limit = None
         
         # Configure styles
         style = ttk.Style()
@@ -251,13 +257,18 @@ class PLMGUI:
             self.projects_tree.insert("", "end", text=proj["name"],
                 values=(proj["plm_id"], proj["owner"], proj["created_date"], "Yes"))
         
-        # Update combo
-        self.project_combo["values"] = [p["name"] for p in projects]
-        self.file_combo["values"] = []
+        # Update combo if it exists
+        if self.project_combo is not None:
+            self.project_combo["values"] = [p["name"] for p in projects]
+        if self.file_combo is not None:
+            self.file_combo["values"] = []
     
     def refresh_files(self):
         """Refresh files list"""
         self.files_tree.delete(*self.files_tree.get_children())
+        
+        if self.project_combo is None:
+            return
         
         project_name = self.project_combo.get()
         if not project_name:
@@ -276,18 +287,25 @@ class PLMGUI:
             self.files_tree.insert("", "end", text=f["file_name"],
                 values=(f["plm_id"], f["file_type"], locked, f.get("lifecycle_state", "In-Work")))
         
-        # Update combo
-        self.file_combo["values"] = [f["file_name"] for f in files]
+        # Update combo if it exists
+        if self.file_combo is not None:
+            self.file_combo["values"] = [f["file_name"] for f in files]
     
     def refresh_versions(self):
         """Refresh versions list"""
         self.versions_tree.delete(*self.versions_tree.get_children())
+        
+        if self.file_combo is None:
+            return
         
         file_name = self.file_combo.get()
         if not file_name:
             return
         
         # Find file
+        if self.project_combo is None:
+            return
+        
         projects = self.db.list_projects()
         if not projects:
             return
@@ -324,6 +342,9 @@ class PLMGUI:
     def refresh_audit(self):
         """Refresh audit log"""
         self.audit_tree.delete(*self.audit_tree.get_children())
+        
+        if self.audit_limit is None:
+            return
         
         limit = int(str(self.audit_limit.get()))
         logs = self.db.get_audit_trail(limit=limit)
@@ -367,6 +388,10 @@ class PLMGUI:
     
     def create_version(self):
         """Create new version dialog"""
+        if self.file_combo is None:
+            messagebox.showerror("Error", "Files tab not initialized")
+            return
+        
         file_name = self.file_combo.get()
         if not file_name:
             messagebox.showerror("Error", "Select a file first")
@@ -378,6 +403,9 @@ class PLMGUI:
         
         try:
             # Find file
+            if self.project_combo is None:
+                raise Exception("Project selector not initialized")
+            
             projects = self.db.list_projects()
             if not projects:
                 raise Exception("No projects found")
@@ -408,6 +436,10 @@ class PLMGUI:
             messagebox.showerror("Error", "Select a version")
             return
         
+        if self.file_combo is None:
+            messagebox.showerror("Error", "Files tab not initialized")
+            return
+        
         file_name = self.file_combo.get()
         item = selection[0]
         values = self.versions_tree.item(item, "values")
@@ -415,6 +447,9 @@ class PLMGUI:
         
         if messagebox.askyesno("Confirm", f"Freeze version v{version_num:03d}? (Read-Only)"):
             try:
+                if self.project_combo is None:
+                    raise Exception("Project selector not initialized")
+                
                 projects = self.db.list_projects()
                 if not projects:
                     raise Exception("No projects found")
@@ -438,12 +473,19 @@ class PLMGUI:
     
     def acquire_lock(self):
         """Acquire lock for file"""
+        if self.file_combo is None:
+            messagebox.showerror("Error", "Files tab not initialized")
+            return
+        
         file_name = self.file_combo.get()
         if not file_name:
             messagebox.showerror("Error", "Select a file first")
             return
         
         try:
+            if self.project_combo is None:
+                raise Exception("Project selector not initialized")
+            
             projects = self.db.list_projects()
             if not projects:
                 raise Exception("No projects found")
@@ -466,12 +508,19 @@ class PLMGUI:
     
     def release_lock(self):
         """Release lock for file"""
+        if self.file_combo is None:
+            messagebox.showerror("Error", "Files tab not initialized")
+            return
+        
         file_name = self.file_combo.get()
         if not file_name:
             messagebox.showerror("Error", "Select a file first")
             return
         
         try:
+            if self.project_combo is None:
+                raise Exception("Project selector not initialized")
+            
             projects = self.db.list_projects()
             if not projects:
                 raise Exception("No projects found")

@@ -128,17 +128,54 @@ def setup_vault(vault_path: str) -> int:
 
 
 if __name__ == "__main__":
-    vault_path = r"e:\PLM_VAULT"
+    # Get vault path from environment variable or prompt user
+    vault_path = os.getenv("PLM_VAULT_PATH", None)
+    
+    if not vault_path:
+        print("=" * 70)
+        print("PLM VAULT LOCATION SETUP")
+        print("=" * 70)
+        print("\nPlease specify where to create the PLM vault.\n")
+        print("Options:")
+        print("  1. Use default location: e:\\PLM_VAULT (may not exist)")
+        print("  2. Use current drive:    D:\\Anurag\\PLM_VAULT")
+        print("  3. Enter custom path")
+        print("  4. Exit")
+        
+        choice = input("\nSelect option (1-4): ").strip()
+        
+        if choice == "1":
+            vault_path = r"e:\PLM_VAULT"
+        elif choice == "2":
+            vault_path = r"D:\Anurag\PLM_VAULT"
+        elif choice == "3":
+            vault_path = input("Enter full path (e.g., C:\\PLM_Vault): ").strip()
+            if not vault_path:
+                print("✗ No path provided. Exiting.")
+                sys.exit(1)
+        else:
+            print("Exiting.")
+            sys.exit(0)
+    
+    vault_path = vault_path.rstrip("\\")  # Remove trailing backslash
+    
+    print(f"\n➜ Vault location: {vault_path}")
+    print("(Set PLM_VAULT_PATH environment variable to skip this prompt)\n")
     
     # Check if vault already exists
-    if Path(vault_path).exists() and (Path(vault_path) / "db.sqlite").exists():
-        print(f"Vault already exists at {vault_path}")
+    if Path(vault_path).exists() and (Path(vault_path) / "plm.sqlite").exists():
+        print(f"✓ Vault already exists at {vault_path}")
         response = input("Reinitialize? (y/n): ").strip().lower()
         if response != 'y':
             sys.exit(0)
     
     try:
         exit_code = setup_vault(vault_path)
+        
+        # Save vault path to environment for future use
+        print(f"\n💡 To avoid this prompt next time, set environment variable:")
+        print(f"   set PLM_VAULT_PATH={vault_path}\n")
+        
         sys.exit(exit_code)
     except Exception as e:
         print(f"\n✗ Error during initialization: {e}")
