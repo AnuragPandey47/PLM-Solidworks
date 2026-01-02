@@ -6,6 +6,26 @@
 
 ---
 
+## Onboarding Actions (performed Jan 2, 2026)
+
+- **Agent:** GitHub Copilot — continued setup and basic verification for handoff.
+- **Machine note:** User confirmed SolidWorks is available on this machine.
+- **Actions performed:**
+  - Ran `python check_env.py` — environment OK; reported vault drive `e:` inaccessible on this machine.
+  - Executed `python SETUP.py` (selected current drive) — created vault at `D:\Anurag\PLM_VAULT` and initialized `db.sqlite`.
+  - Ran `python verify_system.py` — quick health checks passed; test project `TestProj_1` created.
+  - Ran `python test_plm.py` — basic tests passed.
+- **Current state after actions:**
+  - Vault location: `D:\Anurag\PLM_VAULT`
+  - Database: `D:\Anurag\PLM_VAULT\db.sqlite`
+  - Projects: 1 (TestProj_1)
+
+- **Next recommended steps for the receiving agent:**
+  - Set environment variable: `set PLM_VAULT_PATH=D:\Anurag\PLM_VAULT` (or use PowerShell equivalent).
+  - Launch GUI: `python plm_gui.py` and exercise the Projects/Files/Versions workflows.
+  - If you want the SolidWorks add-in built and registered, provide the SolidWorks install path (e.g. `C:\Program Files\SOLIDWORKS Corp\SOLIDWORKS`) and confirm to proceed; building/registering requires admin rights and Visual Studio/msbuild.
+
+
 ## What's Been Completed ✅
 
 ### Phase 1: Architecture & Design ✅
