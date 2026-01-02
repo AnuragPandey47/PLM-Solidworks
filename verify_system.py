@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """Complete PLM System Test"""
 
 import sys
 import os
 from pathlib import Path
+
+# Fix encoding for Windows
+if sys.stdout.encoding != 'utf-8':
+    sys.stdout.reconfigure(encoding='utf-8')
 
 # Set vault path
 vault_path = os.getenv("PLM_VAULT_PATH", r"D:\Anurag\PLM_VAULT")
