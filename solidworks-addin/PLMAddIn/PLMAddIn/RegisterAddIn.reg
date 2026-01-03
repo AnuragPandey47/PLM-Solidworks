@@ -1,0 +1,14 @@
+Windows Registry Editor Version 5.00
+
+; PLM Add-In for SolidWorks
+; GUID: {12345678-1234-1234-1234-123456789ABC}
+
+; Register the add-in with SolidWorks
+[HKEY_LOCAL_MACHINE\SOFTWARE\SolidWorks\Addins\{12345678-1234-1234-1234-123456789ABC}]
+@=dword:00000000
+"Description"="PLM Add-In for SolidWorks"
+"Title"="PLM Add-In"
+
+; Enable add-in to load on startup
+[HKEY_CURRENT_USER\Software\SolidWorks\AddInsStartup\{12345678-1234-1234-1234-123456789ABC}]
+@=dword:00000001

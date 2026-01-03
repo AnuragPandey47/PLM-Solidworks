@@ -108,6 +108,7 @@ class PLMGUI:
         self.project_combo.pack(side=tk.LEFT, padx=2)
         self.project_combo.bind("<<ComboboxSelected>>", lambda e: self.refresh_files())
         
+        ttk.Button(selector_frame, text="Create File", command=self.create_file).pack(side=tk.LEFT, padx=2)
         ttk.Button(selector_frame, text="Refresh", command=self.refresh_files).pack(side=tk.LEFT, padx=2)
         
         # Treeview
@@ -282,14 +283,20 @@ class PLMGUI:
             return
         
         files = self.db.list_project_files(project["project_id"])
+        valid_files = []
         for f in files:
-            locked = f.get("locked_by", "")
-            self.files_tree.insert("", "end", text=f["file_name"],
-                values=(f["plm_id"], f["file_type"], locked, f.get("lifecycle_state", "In-Work")))
+            # Check if v001 folder exists (file is stored in versioned structure)
+            file_folder = Path(f["vault_path"])
+            v001_folder = file_folder / "v001"
+            if v001_folder.exists():
+                locked = f.get("locked_by", "")
+                self.files_tree.insert("", "end", text=f["file_name"],
+                    values=(f["plm_id"], f["file_type"], locked, f.get("lifecycle_state", "In-Work")))
+                valid_files.append(f)
         
         # Update combo if it exists
         if self.file_combo is not None:
-            self.file_combo["values"] = [f["file_name"] for f in files]
+            self.file_combo["values"] = [f["file_name"] for f in valid_files]
     
     def refresh_versions(self):
         """Refresh versions list"""
@@ -377,7 +384,13 @@ class PLMGUI:
                 return
             
             try:
-                self.db.create_project(name, self.current_user, desc)
+                # Create project in database
+                result = self.db.create_project(name, self.current_user, desc)
+                
+                # Create project folder on disk
+                project_path = Path(os.getenv("PLM_VAULT_PATH", r"e:\PLM_VAULT")) / "Projects" / name
+                project_path.mkdir(parents=True, exist_ok=True)
+                
                 messagebox.showinfo("Success", f"Project '{name}' created")
                 self.refresh_projects()
                 dialog.destroy()
@@ -385,6 +398,81 @@ class PLMGUI:
                 messagebox.showerror("Error", str(e))
         
         ttk.Button(dialog, text="Create", command=save).grid(row=2, column=1, padx=5, pady=10, sticky="e")
+    
+    def create_file(self):
+        """Create new file dialog"""
+        if self.project_combo is None:
+            messagebox.showerror("Error", "Files tab not initialized")
+            return
+        
+        project_name = self.project_combo.get()
+        if not project_name:
+            messagebox.showerror("Error", "Select a project first")
+            return
+        
+        # Get project ID
+        projects = self.db.list_projects()
+        project_id = None
+        for p in projects:
+            if p['name'] == project_name:
+                project_id = p['project_id']
+                break
+        
+        if not project_id:
+            messagebox.showerror("Error", "Project not found")
+            return
+        
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Create File")
+        dialog.geometry("400x250")
+        
+        ttk.Label(dialog, text="File Name:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        name_entry = ttk.Entry(dialog, width=30)
+        name_entry.grid(row=0, column=1, padx=5, pady=5)
+        
+        ttk.Label(dialog, text="File Type:").grid(row=1, column=0, padx=5, pady=5, sticky="w")
+        type_combo = ttk.Combobox(dialog, values=["PART", "ASSEMBLY", "DRAWING"], width=27, state="readonly")
+        type_combo.grid(row=1, column=1, padx=5, pady=5)
+        type_combo.current(0)
+        
+        ttk.Label(dialog, text="Description:").grid(row=2, column=0, padx=5, pady=5, sticky="nw")
+        desc_text = tk.Text(dialog, width=30, height=4)
+        desc_text.grid(row=2, column=1, padx=5, pady=5)
+        
+        def save():
+            name = name_entry.get().strip()
+            file_type = type_combo.get()
+            desc = desc_text.get("1.0", "end").strip()
+            
+            if not name:
+                messagebox.showerror("Error", "File name required")
+                return
+            
+            try:
+                # Create folder structure: Projects/ProjectName/FileName/v001/
+                base_vault_path = Path(os.getenv("PLM_VAULT_PATH", r"e:\PLM_VAULT")) / "Projects" / project_name
+                file_folder = base_vault_path / name
+                version_folder = file_folder / "v001"
+                version_folder.mkdir(parents=True, exist_ok=True)
+                
+                # Determine file extension based on type
+                ext_map = {"PART": ".SLDPRT", "ASSEMBLY": ".SLDASM", "DRAWING": ".SLDDRW"}
+                ext = ext_map.get(file_type, ".txt")
+                file_path = version_folder / f"{name}{ext}"
+                
+                # Create the file on disk in v001 folder
+                file_path.touch()
+                
+                # Store vault_path as folder path (not file path)
+                self.db.create_file(project_id, name, file_type, str(file_folder), desc)
+                messagebox.showinfo("Success", f"File '{name}' created")
+                self.refresh_files()
+                dialog.destroy()
+            except Exception as e:
+                messagebox.showerror("Error", str(e))
+        
+        ttk.Button(dialog, text="Create", command=save).grid(row=3, column=1, padx=5, pady=10, sticky="e")
+    
     
     def create_version(self):
         """Create new version dialog"""
@@ -420,11 +508,43 @@ class PLMGUI:
             if not file:
                 raise Exception("File not found")
             
-            # Create version
-            vault_path = file.get("vault_path", "")
-            self.db.create_version(file["file_id"], vault_path, change_note=note)
+            # Get current version number
+            versions = self.db.list_file_versions(file["file_id"])
+            next_version = len(versions) + 1
             
-            messagebox.showinfo("Success", "Version created")
+            # Create version folders
+            file_folder = Path(file.get("vault_path", ""))
+            if not file_folder.exists():
+                raise Exception(f"File folder not found: {file_folder}")
+            
+            # Get file name and type
+            file_name = file["file_name"]
+            file_type = file["file_type"]
+            ext_map = {"PART": ".SLDPRT", "ASSEMBLY": ".SLDASM", "DRAWING": ".SLDDRW"}
+            ext = ext_map.get(file_type, ".txt")
+            
+            # Create new version folder
+            version_folder = file_folder / f"v{next_version:03d}"
+            version_folder.mkdir(parents=True, exist_ok=True)
+            
+            # Copy file from previous version
+            if next_version > 1:
+                prev_version_folder = file_folder / f"v{next_version-1:03d}"
+                prev_file = prev_version_folder / f"{file_name}{ext}"
+                new_file = version_folder / f"{file_name}{ext}"
+                if prev_file.exists():
+                    import shutil
+                    shutil.copy2(prev_file, new_file)
+            else:
+                # First version already exists
+                new_file = version_folder / f"{file_name}{ext}"
+                if not new_file.exists():
+                    new_file.touch()
+            
+            # Create database entry
+            self.db.create_version(file["file_id"], self.current_user, change_note=note)
+            
+            messagebox.showinfo("Success", f"Version v{next_version:03d} created")
             self.refresh_versions()
         except Exception as e:
             messagebox.showerror("Error", str(e))

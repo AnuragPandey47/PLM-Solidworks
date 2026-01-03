@@ -846,9 +846,12 @@ WHERE lock_release_timestamp IS NULL
     
     def _get_next_plm_id(self, cursor, prefix: str) -> str:
         """Generate next PLM ID (e.g., PLM-PAR-001)"""
+        # Search pattern must include the full PLM- prefix
+        search_pattern = f"PLM-{prefix}-%"
+        
         cursor.execute(
             f"SELECT MAX(CAST(SUBSTR(plm_id, -3) AS INTEGER)) FROM files WHERE plm_id LIKE ?"
-            , (f'{prefix}-%',)
+            , (search_pattern,)
         )
         result = cursor.fetchone()
         next_num = (result[0] or 0) + 1
@@ -856,7 +859,7 @@ WHERE lock_release_timestamp IS NULL
         # Also check projects table
         cursor.execute(
             f"SELECT MAX(CAST(SUBSTR(plm_id, -3) AS INTEGER)) FROM projects WHERE plm_id LIKE ?",
-            (f'{prefix}-%',)
+            (search_pattern,)
         )
         proj_result = cursor.fetchone()
         proj_num = proj_result[0] or 0
