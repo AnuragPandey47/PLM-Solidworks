@@ -1,0 +1,480 @@
+﻿using System;
+using System.Diagnostics;
+using System.IO;
+using System.Runtime.InteropServices;
+using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
+using SolidWorks.Interop.swpublished;
+using PLMAddIn.Services;
+using PLMAddIn.Lifecycle;
+
+namespace PLMAddIn
+{
+    [Guid("A7E8F9D2-3C4B-5E6A-7F8D-9C0B1A2E3D4F")]
+    [ComVisible(true)]
+    public class PLMAddInMain : ISwAddin
+    {
+        private ISldWorks _swApp;
+        private int _addinId;
+        private PartDoc _partDoc;
+        private AssemblyDoc _asmDoc;
+        private DrawingDoc _drwDoc;
+        private MetadataService _metadataService;
+        private LifecycleManager _lifecycleManager;
+        private CommandGroup _cmdGroup;
+        private int _freezeCmdId = 0;
+        private int _releaseCmdId = 1;
+        private int _reworkCmdId = 2;
+
+        public PLMAddInMain()
+        {
+            _metadataService = new MetadataService();
+            _lifecycleManager = new LifecycleManager();
+        }
+
+        public bool ConnectToSW(object thisSW, int cookie)
+        {
+            try
+            {
+                _swApp = (ISldWorks)thisSW;
+                _addinId = cookie;
+                
+                // Set callback info
+                _swApp.SetAddinCallbackInfo2(0, this, cookie);
+                
+                // Listen for documents being opened
+                ((SldWorks)_swApp).FileNewNotify2 += OnFileNew;
+                ((SldWorks)_swApp).FileOpenPostNotify += OnFileOpen;
+                ((SldWorks)_swApp).ActiveDocChangeNotify += OnActiveDocChange;
+                
+                // Attach to currently active document if any
+                AttachModelDocEventHandler();
+                
+                // Create PLM toolbar with buttons
+                CreateCommandGroup();
+                
+                Debug.WriteLine("PLM Add-In: Successfully connected to SolidWorks");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"PLM Add-In: Error connecting to SolidWorks - {ex.Message}");
+                return false;
+            }
+        }
+
+        public bool DisconnectFromSW()
+        {
+            try
+            {
+                // Unhook app-level events
+                ((SldWorks)_swApp).FileNewNotify2 -= OnFileNew;
+                ((SldWorks)_swApp).FileOpenPostNotify -= OnFileOpen;
+                ((SldWorks)_swApp).ActiveDocChangeNotify -= OnActiveDocChange;
+                
+                DetachModelDocEventHandler();
+                
+                // Remove command group
+                RemoveCommandGroup();
+                
+                Debug.WriteLine("PLM Add-In: Disconnected from SolidWorks");
+                
+                if (_swApp != null)
+                {
+                    Marshal.ReleaseComObject(_swApp);
+                    _swApp = null;
+                }
+                
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"PLM Add-In: Error disconnecting from SolidWorks - {ex.Message}");
+                return false;
+            }
+        }
+
+        private void CreateCommandGroup()
+        {
+            // Note: SolidWorks command group API varies by version
+            // For maximum compatibility, users should create toolbar buttons manually:
+            // Tools → Customize → Commands → Macros → Add custom buttons
+            // Or use the macro approach (most reliable across SW versions)
+            
+            Debug.WriteLine("PLM Add-In: Public methods available for macro/button calls");
+        }
+
+        private void RemoveCommandGroup()
+        {
+            // Cleanup if needed
+        }
+
+        private void CreateMenu()
+        {
+            // Replaced by CreateCommandGroup
+        }
+
+        // Command group callbacks - these get called when buttons are clicked
+        public void FreezeCurrentVersion()
+        {
+            try
+            {
+                ModelDoc2 activeDoc = (ModelDoc2)_swApp.ActiveDoc;
+                if (activeDoc == null)
+                {
+                    _swApp.SendMsgToUser("No active document");
+                    return;
+                }
+
+                string filePath = activeDoc.GetPathName();
+                if (string.IsNullOrEmpty(filePath))
+                {
+                    _swApp.SendMsgToUser("Please save the document first");
+                    return;
+                }
+
+                string projectPath = GetProjectPath();
+                if (string.IsNullOrEmpty(projectPath))
+                {
+                    _swApp.SendMsgToUser("No PLM project path set");
+                    return;
+                }
+
+                string fileName = Path.GetFileName(filePath);
+                
+                // Use default change note for now
+                string changeNote = "Version freeze from SolidWorks";
+
+                string newVersion = _lifecycleManager.FreezeVersion(projectPath, fileName, changeNote);
+                
+                _swApp.SendMsgToUser($"✅ Version {newVersion} created successfully!");
+                Debug.WriteLine($"PLM Add-In: Version {newVersion} frozen for {fileName}");
+            }
+            catch (Exception ex)
+            {
+                _swApp.SendMsgToUser($"❌ Error freezing version: {ex.Message}");
+                Debug.WriteLine($"PLM Add-In: Error in FreezeCurrentVersion - {ex.Message}");
+            }
+        }
+
+        public void ReleaseCurrentVersion()
+        {
+            try
+            {
+                ModelDoc2 activeDoc = (ModelDoc2)_swApp.ActiveDoc;
+                if (activeDoc == null)
+                {
+                    _swApp.SendMsgToUser("No active document");
+                    return;
+                }
+
+                string filePath = activeDoc.GetPathName();
+                string projectPath = GetProjectPath();
+                
+                if (string.IsNullOrEmpty(projectPath))
+                {
+                    _swApp.SendMsgToUser("No PLM project path set");
+                    return;
+                }
+
+                string fileName = Path.GetFileName(filePath);
+                
+                // Get current metadata to get latest version
+                string fileNameWithoutExt = Path.GetFileNameWithoutExtension(fileName);
+                string partMetaFolder = Path.Combine(projectPath, "Parts", fileNameWithoutExt);
+                var metadata = _metadataService.LoadPartMetadata(partMetaFolder);
+                
+                if (metadata == null || metadata.LatestVersion == "v000")
+                {
+                    _swApp.SendMsgToUser("❌ No frozen version found. Please freeze a version first.");
+                    return;
+                }
+
+                // Release the latest version
+                string versionToRelease = metadata.LatestVersion;
+
+                _lifecycleManager.ReleaseVersion(projectPath, fileName, versionToRelease);
+                
+                _swApp.SendMsgToUser($"✅ Version {versionToRelease} released successfully!");
+                Debug.WriteLine($"PLM Add-In: Version {versionToRelease} released for {fileName}");
+            }
+            catch (Exception ex)
+            {
+                _swApp.SendMsgToUser($"❌ Error releasing version: {ex.Message}");
+                Debug.WriteLine($"PLM Add-In: Error in ReleaseCurrentVersion - {ex.Message}");
+            }
+        }
+
+        public void ReworkFromVersion()
+        {
+            try
+            {
+                ModelDoc2 activeDoc = (ModelDoc2)_swApp.ActiveDoc;
+                if (activeDoc == null)
+                {
+                    _swApp.SendMsgToUser("No active document");
+                    return;
+                }
+
+                string filePath = activeDoc.GetPathName();
+                string projectPath = GetProjectPath();
+                
+                if (string.IsNullOrEmpty(projectPath))
+                {
+                    _swApp.SendMsgToUser("No PLM project path set");
+                    return;
+                }
+
+                string fileName = Path.GetFileName(filePath);
+                
+                // Get available versions
+                string fileNameWithoutExt = Path.GetFileNameWithoutExtension(fileName);
+                string partMetaFolder = Path.Combine(projectPath, "Parts", fileNameWithoutExt);
+                var metadata = _metadataService.LoadPartMetadata(partMetaFolder);
+                
+                if (metadata == null || metadata.LatestVersion == "v000")
+                {
+                    _swApp.SendMsgToUser("❌ No frozen version found to rework from.");
+                    return;
+                }
+
+                // Rework from latest version
+                string versionToRework = metadata.LatestVersion;
+
+                _lifecycleManager.ReworkVersion(projectPath, fileName, versionToRework);
+                
+                _swApp.SendMsgToUser($"✅ Rework from version {versionToRework} successful! Please reopen the file.");
+                Debug.WriteLine($"PLM Add-In: Rework from version {versionToRework} for {fileName}");
+            }
+            catch (Exception ex)
+            {
+                _swApp.SendMsgToUser($"❌ Error reworking version: {ex.Message}");
+                Debug.WriteLine($"PLM Add-In: Error in ReworkFromVersion - {ex.Message}");
+            }
+        }
+
+        private int OnFileNew(object newDoc, int docType, string templateName)
+        {
+            Debug.WriteLine("PLM Add-In: New file created, attaching events");
+            AttachModelDocEventHandler();
+            return 0;
+        }
+
+        private int OnFileOpen(string fileName)
+        {
+            Debug.WriteLine($"PLM Add-In: File opened: {fileName}, attaching events");
+            AttachModelDocEventHandler();
+            return 0;
+        }
+
+        private int OnActiveDocChange()
+        {
+            Debug.WriteLine("PLM Add-In: Active document changed, attaching events");
+            AttachModelDocEventHandler();
+            return 0;
+        }
+
+        private void AttachModelDocEventHandler()
+        {
+            ModelDoc2 modDoc = (ModelDoc2)_swApp.ActiveDoc;
+            if (modDoc != null)
+            {
+                // Detach from previous document first
+                DetachModelDocEventHandler();
+                
+                Debug.WriteLine($"PLM Add-In: Attaching to document: {modDoc.GetPathName()}");
+                AttachEventsToDoc(modDoc);
+            }
+        }
+
+        private void AttachEventsToDoc(ModelDoc2 modDoc)
+        {
+            switch (modDoc.GetType())
+            {
+                case (int)swDocumentTypes_e.swDocPART:
+                    _partDoc = (PartDoc)modDoc;
+                    _partDoc.FileSaveNotify += OnFileSave;
+                    break;
+                case (int)swDocumentTypes_e.swDocASSEMBLY:
+                    _asmDoc = (AssemblyDoc)modDoc;
+                    _asmDoc.FileSaveNotify += OnFileSave;
+                    break;
+                case (int)swDocumentTypes_e.swDocDRAWING:
+                    _drwDoc = (DrawingDoc)modDoc;
+                    _drwDoc.FileSaveNotify += OnFileSave;
+                    break;
+            }
+        }
+
+        private void DetachModelDocEventHandler()
+        {
+            if (_partDoc != null)
+            {
+                _partDoc.FileSaveNotify -= OnFileSave;
+                _partDoc = null;
+            }
+            if (_asmDoc != null)
+            {
+                _asmDoc.FileSaveNotify -= OnFileSave;
+                _asmDoc = null;
+            }
+            if (_drwDoc != null)
+            {
+                _drwDoc.FileSaveNotify -= OnFileSave;
+                _drwDoc = null;
+            }
+        }
+
+        private int OnFileSave(string fileName)
+        {
+            HandleFileSave(fileName);
+            return 0;
+        }
+
+        private void HandleFileSave(string filePath)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(filePath))
+                {
+                    Debug.WriteLine("PLM Add-In: File path is empty");
+                    return;
+                }
+
+                if (!File.Exists(filePath))
+                {
+                    Debug.WriteLine($"PLM Add-In: File does not exist - {filePath}");
+                    return;
+                }
+
+                // Get project path from environment variable
+                string projectPath = GetProjectPath();
+                if (string.IsNullOrEmpty(projectPath))
+                {
+                    Debug.WriteLine("PLM Add-In: No project path found - file not managed by PLM");
+                    return;
+                }
+
+                FileInfo fileInfo = new FileInfo(filePath);
+                string fileName = fileInfo.Name;
+                string fileNameWithoutExt = Path.GetFileNameWithoutExtension(fileName);
+
+                // Construct target path: Projects/ProjectName/Working/Parts/FileName.ext
+                string workingPartsFolder = Path.Combine(projectPath, "Working", "Parts");
+                Directory.CreateDirectory(workingPartsFolder);
+
+                string workingFilePath = Path.Combine(workingPartsFolder, fileName);
+                
+                // Copy file to working directory
+                File.Copy(filePath, workingFilePath, overwrite: true);
+                
+                Debug.WriteLine($"PLM Add-In: File copied to working directory");
+                Debug.WriteLine($"  Source: {filePath}");
+                Debug.WriteLine($"  Target: {workingFilePath}");
+
+                // Update part metadata
+                string partMetaFolder = Path.Combine(projectPath, "Parts", fileNameWithoutExt);
+                Directory.CreateDirectory(partMetaFolder);
+                
+                _metadataService.UpdatePartMetadata(partMetaFolder, "Working", "v000", null);
+                
+                Debug.WriteLine($"PLM Add-In: Metadata updated - state: Working");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"PLM Add-In: Error handling file save - {ex.Message}");
+                Debug.WriteLine($"  Stack Trace: {ex.StackTrace}");
+            }
+        }
+
+        private string GetProjectPath()
+        {
+            try
+            {
+                // First try environment variable (set by Python GUI)
+                string envPath = System.Environment.GetEnvironmentVariable("PLM_PROJECT_PATH");
+                if (!string.IsNullOrEmpty(envPath))
+                {
+                    Debug.WriteLine($"PLM Add-In: Project path from env var: {envPath}");
+                    return envPath;
+                }
+
+                // Fallback to registry
+                var regKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\PLM\");
+                if (regKey != null)
+                {
+                    string regPath = (string)regKey.GetValue("CurrentProject");
+                    if (!string.IsNullOrEmpty(regPath))
+                    {
+                        Debug.WriteLine($"PLM Add-In: Project path from registry: {regPath}");
+                        return regPath;
+                    }
+                }
+
+                Debug.WriteLine("PLM Add-In: No project path found");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"PLM Add-In: Error getting project path - {ex.Message}");
+                return null;
+            }
+        }
+
+        #region COM Registration
+
+        [ComRegisterFunction]
+        public static void RegisterFunction(Type t)
+        {
+            try
+            {
+                Microsoft.Win32.RegistryKey hklm = Microsoft.Win32.Registry.LocalMachine;
+                Microsoft.Win32.RegistryKey hkcu = Microsoft.Win32.Registry.CurrentUser;
+
+                // Register SolidWorks Add-In
+                string keyname = "SOFTWARE\\SolidWorks\\Addins\\{A7E8F9D2-3C4B-5E6A-7F8D-9C0B1A2E3D4F}";
+                Microsoft.Win32.RegistryKey addinkey = hklm.CreateSubKey(keyname);
+                addinkey.SetValue(null, 0);
+                addinkey.SetValue("Description", "PLM Add-In for SolidWorks");
+                addinkey.SetValue("Title", "PLM Add-In");
+
+                keyname = "Software\\SolidWorks\\AddInsStartup\\{A7E8F9D2-3C4B-5E6A-7F8D-9C0B1A2E3D4F}";
+                addinkey = hkcu.CreateSubKey(keyname);
+                addinkey.SetValue(null, 1, Microsoft.Win32.RegistryValueKind.DWord);
+
+                System.Diagnostics.Debug.WriteLine("PLM Add-In: COM registration successful");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"PLM Add-In: Error during registration - {ex.Message}");
+            }
+        }
+
+        [ComUnregisterFunction]
+        public static void UnregisterFunction(Type t)
+        {
+            try
+            {
+                Microsoft.Win32.RegistryKey hklm = Microsoft.Win32.Registry.LocalMachine;
+                Microsoft.Win32.RegistryKey hkcu = Microsoft.Win32.Registry.CurrentUser;
+
+                string keyname = "SOFTWARE\\SolidWorks\\Addins\\{A7E8F9D2-3C4B-5E6A-7F8D-9C0B1A2E3D4F}";
+                hklm.DeleteSubKey(keyname, false);
+
+                keyname = "Software\\SolidWorks\\AddInsStartup\\{A7E8F9D2-3C4B-5E6A-7F8D-9C0B1A2E3D4F}";
+                hkcu.DeleteSubKey(keyname, false);
+
+                System.Diagnostics.Debug.WriteLine("PLM Add-In: COM unregistration successful");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"PLM Add-In: Error during unregistration - {ex.Message}");
+            }
+        }
+
+        #endregion
+    }
+}

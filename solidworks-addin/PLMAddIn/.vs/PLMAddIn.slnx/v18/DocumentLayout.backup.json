@@ -3,64 +3,32 @@
   "WorkspaceRootPath": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|d:\\anurag\\plm-solidworks\\solidworks-addin\\plmaddin\\plmaddin\\registeraddin.reg||{3B902123-F8A7-4915-9F01-361F908088D0}",
-      "RelativeMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|solutionrelative:plmaddin\\registeraddin.reg||{3B902123-F8A7-4915-9F01-361F908088D0}"
+      "AbsoluteMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|d:\\anurag\\plm-solidworks\\solidworks-addin\\plmaddin\\plmaddin\\com\\iversionmanagercom.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|solutionrelative:plmaddin\\com\\iversionmanagercom.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\plmaddin\\setup.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
-      "RelativeMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|solutionrelative:plmaddin\\setup.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\plmaddin\\quickstart.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
-      "RelativeMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|solutionrelative:plmaddin\\quickstart.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\plmaddin\\unregisteraddin.reg||{3B902123-F8A7-4915-9F01-361F908088D0}",
-      "RelativeMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|solutionrelative:plmaddin\\unregisteraddin.reg||{3B902123-F8A7-4915-9F01-361F908088D0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\plmaddin\\registeraddin.bat||{3B902123-F8A7-4915-9F01-361F908088D0}",
-      "RelativeMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|solutionrelative:plmaddin\\registeraddin.bat||{3B902123-F8A7-4915-9F01-361F908088D0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\plmaddin\\unregisteraddin.bat||{3B902123-F8A7-4915-9F01-361F908088D0}",
-      "RelativeMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|solutionrelative:plmaddin\\unregisteraddin.bat||{3B902123-F8A7-4915-9F01-361F908088D0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\plmaddin\\implementation_summary.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
-      "RelativeMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|solutionrelative:plmaddin\\implementation_summary.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\plmaddin\\plmaddinmain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|d:\\anurag\\plm-solidworks\\solidworks-addin\\plmaddin\\plmaddin\\plmaddinmain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|solutionrelative:plmaddin\\plmaddinmain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\properties\\assemblyinfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|solutionrelative:properties\\assemblyinfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|d:\\anurag\\plm-solidworks\\solidworks-addin\\plmaddin\\plmaddin\\project_status.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|solutionrelative:plmaddin\\project_status.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\plmaddin\\readme.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
-      "RelativeMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|solutionrelative:plmaddin\\readme.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+      "AbsoluteMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|d:\\anurag\\plm-solidworks\\solidworks-addin\\plmaddin\\plmaddin\\models\\versioninfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|solutionrelative:plmaddin\\models\\versioninfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\plmaddin\\class1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|solutionrelative:plmaddin\\class1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|d:\\anurag\\plm-solidworks\\solidworks-addin\\plmaddin\\plmaddin\\services\\fileservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|solutionrelative:plmaddin\\services\\fileservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\plmaddin\\deployment.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
-      "RelativeMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|solutionrelative:plmaddin\\deployment.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+      "AbsoluteMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|d:\\anurag\\plm-solidworks\\solidworks-addin\\plmaddin\\plmaddin\\services\\metadataservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|solutionrelative:plmaddin\\services\\metadataservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\plmaddin\\build_deployment_package.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
-      "RelativeMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|solutionrelative:plmaddin\\build_deployment_package.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|d:\\anurag\\plm-solidworks\\solidworks-addin\\plmaddin\\plmaddin\\plmaddin.csproj.fixed||{8B382828-6202-11D1-8870-0000F87579D2}",
-      "RelativeMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|solutionrelative:plmaddin\\plmaddin.csproj.fixed||{8B382828-6202-11D1-8870-0000F87579D2}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|d:\\anurag\\plm-solidworks\\solidworks-addin\\plmaddin\\plmaddin\\plmaddin.csproj.new||{3B902123-F8A7-4915-9F01-361F908088D0}",
-      "RelativeMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|solutionrelative:plmaddin\\plmaddin.csproj.new||{3B902123-F8A7-4915-9F01-361F908088D0}"
+      "AbsoluteMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|d:\\anurag\\plm-solidworks\\solidworks-addin\\plmaddin\\plmaddin\\lifecycle\\lifecyclemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EA40495F-31D8-407A-A9B8-896F02DFB2F2}|PLMAddIn.csproj|solutionrelative:plmaddin\\lifecycle\\lifecyclemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -69,208 +37,117 @@
       "VerticalTabListWidth": 256,
       "DocumentGroups": [
         {
-          "DockedWidth": 174,
-          "SelectedChildIndex": 7,
+          "DockedWidth": 188,
+          "SelectedChildIndex": -1,
           "Children": [
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
             },
             {
-              "$type": "Document",
-              "DocumentIndex": 12,
-              "Title": "BUILD_DEPLOYMENT_PACKAGE.md",
-              "DocumentMoniker": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\BUILD_DEPLOYMENT_PACKAGE.md",
-              "RelativeDocumentMoniker": "PLMAddIn\\BUILD_DEPLOYMENT_PACKAGE.md",
-              "ToolTip": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\BUILD_DEPLOYMENT_PACKAGE.md",
-              "RelativeToolTip": "PLMAddIn\\BUILD_DEPLOYMENT_PACKAGE.md",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAIkAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2026-01-03T00:36:52.103Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 11,
-              "Title": "DEPLOYMENT.md",
-              "DocumentMoniker": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\DEPLOYMENT.md",
-              "RelativeDocumentMoniker": "PLMAddIn\\DEPLOYMENT.md",
-              "ToolTip": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\DEPLOYMENT.md",
-              "RelativeToolTip": "PLMAddIn\\DEPLOYMENT.md",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2026-01-03T00:36:52.103Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
-              "Title": "Class1.cs",
-              "DocumentMoniker": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\Class1.cs",
-              "RelativeDocumentMoniker": "PLMAddIn\\Class1.cs",
-              "ToolTip": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\Class1.cs",
-              "RelativeToolTip": "PLMAddIn\\Class1.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-03T00:36:52.104Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "QUICKSTART.md",
-              "DocumentMoniker": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\QUICKSTART.md",
-              "RelativeDocumentMoniker": "PLMAddIn\\QUICKSTART.md",
-              "ToolTip": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\QUICKSTART.md",
-              "RelativeToolTip": "PLMAddIn\\QUICKSTART.md",
-              "ViewState": "AgIAAGQAAAAAAAAAAAAAAHUAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2026-01-03T00:36:52.105Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "IMPLEMENTATION_SUMMARY.md",
-              "DocumentMoniker": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\IMPLEMENTATION_SUMMARY.md",
-              "RelativeDocumentMoniker": "PLMAddIn\\IMPLEMENTATION_SUMMARY.md",
-              "ToolTip": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\IMPLEMENTATION_SUMMARY.md",
-              "RelativeToolTip": "PLMAddIn\\IMPLEMENTATION_SUMMARY.md",
-              "ViewState": "AgIAABYAAAAAAAAAAAAhwAgAAAAXAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2026-01-03T00:36:52.105Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "UnregisterAddIn.bat",
-              "DocumentMoniker": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\UnregisterAddIn.bat",
-              "RelativeDocumentMoniker": "PLMAddIn\\UnregisterAddIn.bat",
-              "ToolTip": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\UnregisterAddIn.bat",
-              "RelativeToolTip": "PLMAddIn\\UnregisterAddIn.bat",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAC4AAAAAAAAAAAAAAA==",
-              "Icon": "00000000-0000-0000-0000-000000000000.000000|iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFjSURBVDhPY6AI/P//n7G1s\u002Bc/lEsWYILSRANbaysUmgHkgl\u002B/fpGFQXqxuuDkyZMMEydOBNOEAIYBixYvZhARl2QIiohi4BeTYJg\u002BcxZUBjtAMeDSpUsM1rb2DEoKcgwnDx9kUFOQZ7BxcQeL4wIoBuzfv5\u002BBjZOTYe2aNQyRkZEM69auYWBjY2VYv3UHw4otuxl2HzzK8OPHD6hqCEAxwNHRkeHrt28MQcEhDMuXL2cIANLP33xgUPdNYdB3dGN4JajGcPrSVahqCEAxQE9Pj\u002BHE4UMMV\u002B89ZNC1tGW4dOcBw7kzZxn0lYQZLj/5zGCoLMrw9NU7qGoIwAjEhLhYhm9vXjDsWLOC4fe7lwxm\u002BloMl\u002B69ZdCV4WW4cO8Ng4meNlQlBLBAaRRgbm4OxiAA8vOPU2cZLj34xqCnpswgIyYFFocBDBegAw4ODgYXO2uGcB9XBh01JTAfGVCcFwYaMDAAABi9qE6NKlarAAAAAElFTkSuQmCC",
-              "WhenOpened": "2026-01-03T00:36:52.106Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "RegisterAddIn.reg",
-              "DocumentMoniker": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\RegisterAddIn.reg",
-              "RelativeDocumentMoniker": "PLMAddIn\\RegisterAddIn.reg",
-              "ToolTip": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\RegisterAddIn.reg",
-              "RelativeToolTip": "PLMAddIn\\RegisterAddIn.reg",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002531|",
-              "WhenOpened": "2026-01-03T00:36:52.11Z",
-              "EditorCaption": ""
-            },
-            {
               "$type": "Bookmark",
               "Name": "ST:0:0:{1c64b9c2-e352-428e-a56d-0ace190b99a6}"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "RegisterAddIn.bat",
-              "DocumentMoniker": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\RegisterAddIn.bat",
-              "RelativeDocumentMoniker": "PLMAddIn\\RegisterAddIn.bat",
-              "ToolTip": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\RegisterAddIn.bat",
-              "RelativeToolTip": "PLMAddIn\\RegisterAddIn.bat",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAA==",
-              "Icon": "00000000-0000-0000-0000-000000000000.000000|iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFjSURBVDhPY6AI/P//n7G1s\u002Bc/lEsWYILSRANbaysUmgHkgl\u002B/fpGFQXqxuuDkyZMMEydOBNOEAIYBixYvZhARl2QIiohi4BeTYJg\u002BcxZUBjtAMeDSpUsM1rb2DEoKcgwnDx9kUFOQZ7BxcQeL4wIoBuzfv5\u002BBjZOTYe2aNQyRkZEM69auYWBjY2VYv3UHw4otuxl2HzzK8OPHD6hqCEAxwNHRkeHrt28MQcEhDMuXL2cIANLP33xgUPdNYdB3dGN4JajGcPrSVahqCEAxQE9Pj\u002BHE4UMMV\u002B89ZNC1tGW4dOcBw7kzZxn0lYQZLj/5zGCoLMrw9NU7qGoIwAjEhLhYhm9vXjDsWLOC4fe7lwxm\u002BloMl\u002B69ZdCV4WW4cO8Ng4meNlQlBLBAaRRgbm4OxiAA8vOPU2cZLj34xqCnpswgIyYFFocBDBegAw4ODgYXO2uGcB9XBh01JTAfGVCcFwYaMDAAABi9qE6NKlarAAAAAElFTkSuQmCC",
-              "WhenOpened": "2026-01-03T00:36:52.107Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "UnregisterAddIn.reg",
-              "DocumentMoniker": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\UnregisterAddIn.reg",
-              "RelativeDocumentMoniker": "PLMAddIn\\UnregisterAddIn.reg",
-              "ToolTip": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\UnregisterAddIn.reg",
-              "RelativeToolTip": "PLMAddIn\\UnregisterAddIn.reg",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002531|",
-              "WhenOpened": "2026-01-03T00:36:52.108Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "SETUP.md",
-              "DocumentMoniker": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\SETUP.md",
-              "RelativeDocumentMoniker": "PLMAddIn\\SETUP.md",
-              "ToolTip": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\SETUP.md",
-              "RelativeToolTip": "PLMAddIn\\SETUP.md",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAiwBsAAAAiAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2026-01-03T00:36:52.113Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "README.md",
-              "DocumentMoniker": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\README.md",
-              "RelativeDocumentMoniker": "PLMAddIn\\README.md",
-              "ToolTip": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\README.md",
-              "RelativeToolTip": "PLMAddIn\\README.md",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAIEAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2026-01-03T00:36:52.114Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "AssemblyInfo.cs",
-              "DocumentMoniker": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\Properties\\AssemblyInfo.cs",
-              "RelativeDocumentMoniker": "Properties\\AssemblyInfo.cs",
-              "ToolTip": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\Properties\\AssemblyInfo.cs",
-              "RelativeToolTip": "Properties\\AssemblyInfo.cs",
-              "ViewState": "AgIAACAAAAAAAAAAAABBwAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-03T00:36:52.114Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "PLMAddInMain.cs",
-              "DocumentMoniker": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\PLMAddInMain.cs",
-              "RelativeDocumentMoniker": "PLMAddIn\\PLMAddInMain.cs",
-              "ToolTip": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\PLMAddInMain.cs",
-              "RelativeToolTip": "PLMAddIn\\PLMAddInMain.cs",
-              "ViewState": "AgIAAMYAAAAAAAAAAGBnwNAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-03T00:36:52.115Z"
             }
           ]
         },
         {
-          "DockedWidth": 226,
-          "SelectedChildIndex": 1,
+          "DockedWidth": 188,
+          "SelectedChildIndex": 0,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 14,
-              "Title": "PLMAddIn.csproj.new",
-              "DocumentMoniker": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\PLMAddIn.csproj.new",
-              "RelativeDocumentMoniker": "PLMAddIn\\PLMAddIn.csproj.new",
-              "ToolTip": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\PLMAddIn.csproj.new",
-              "RelativeToolTip": "PLMAddIn\\PLMAddIn.csproj.new",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEsAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2026-01-03T00:45:11.241Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 13,
-              "Title": "PLMAddIn.csproj.fixed",
-              "DocumentMoniker": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\PLMAddIn.csproj.fixed",
-              "RelativeDocumentMoniker": "PLMAddIn\\PLMAddIn.csproj.fixed",
-              "ToolTip": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\PLMAddIn.csproj.fixed",
-              "RelativeToolTip": "PLMAddIn\\PLMAddIn.csproj.fixed",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEsAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2026-01-03T00:41:09.734Z",
+              "DocumentIndex": 0,
+              "Title": "IVersionManagerCOM.cs",
+              "DocumentMoniker": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\COM\\IVersionManagerCOM.cs",
+              "RelativeDocumentMoniker": "PLMAddIn\\COM\\IVersionManagerCOM.cs",
+              "ToolTip": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\COM\\IVersionManagerCOM.cs",
+              "RelativeToolTip": "PLMAddIn\\COM\\IVersionManagerCOM.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-05T03:53:17.091Z",
               "EditorCaption": ""
             },
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "PLMAddInMain.cs",
+              "DocumentMoniker": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\PLMAddInMain.cs",
+              "RelativeDocumentMoniker": "PLMAddIn\\PLMAddInMain.cs",
+              "ToolTip": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\PLMAddInMain.cs",
+              "RelativeToolTip": "PLMAddIn\\PLMAddInMain.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-04T12:26:34.33Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "LifecycleManager.cs",
+              "DocumentMoniker": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\Lifecycle\\LifecycleManager.cs",
+              "RelativeDocumentMoniker": "PLMAddIn\\Lifecycle\\LifecycleManager.cs",
+              "ToolTip": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\Lifecycle\\LifecycleManager.cs",
+              "RelativeToolTip": "PLMAddIn\\Lifecycle\\LifecycleManager.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAK0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-04T10:05:54.631Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "MetadataService.cs",
+              "DocumentMoniker": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\Services\\MetadataService.cs",
+              "RelativeDocumentMoniker": "PLMAddIn\\Services\\MetadataService.cs",
+              "ToolTip": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\Services\\MetadataService.cs",
+              "RelativeToolTip": "PLMAddIn\\Services\\MetadataService.cs",
+              "ViewState": "AgIAAGgAAAAAAAAAAAAiwIYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-03T09:51:33.821Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "FileService.cs",
+              "DocumentMoniker": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\Services\\FileService.cs",
+              "RelativeDocumentMoniker": "PLMAddIn\\Services\\FileService.cs",
+              "ToolTip": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\Services\\FileService.cs",
+              "RelativeToolTip": "PLMAddIn\\Services\\FileService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAFIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-03T09:51:20.741Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "VersionInfo.cs",
+              "DocumentMoniker": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\Models\\VersionInfo.cs",
+              "RelativeDocumentMoniker": "PLMAddIn\\Models\\VersionInfo.cs",
+              "ToolTip": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\Models\\VersionInfo.cs",
+              "RelativeToolTip": "PLMAddIn\\Models\\VersionInfo.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-03T09:50:47.416Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "PROJECT_STATUS.md",
+              "DocumentMoniker": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\PROJECT_STATUS.md",
+              "RelativeDocumentMoniker": "PLMAddIn\\PROJECT_STATUS.md",
+              "ToolTip": "D:\\Anurag\\PLM-Solidworks\\solidworks-addin\\PLMAddIn\\PLMAddIn\\PROJECT_STATUS.md",
+              "RelativeToolTip": "PLMAddIn\\PROJECT_STATUS.md",
+              "ViewState": "AgIAAGoBAAAAAAAAAIAwwJwBAABLAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-01-03T10:00:30.04Z",
+              "EditorCaption": ""
             }
           ]
         }

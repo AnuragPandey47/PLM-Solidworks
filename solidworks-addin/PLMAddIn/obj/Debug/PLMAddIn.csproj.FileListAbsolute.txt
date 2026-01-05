@@ -1,2 +1,0 @@
-D:\Anurag\PLM-Solidworks\solidworks-addin\PLMAddIn\obj\Debug\PLMAddIn.csproj.AssemblyReference.cache
-D:\Anurag\PLM-Solidworks\solidworks-addin\PLMAddIn\obj\Debug\PLMAddIn.csproj.CoreCompileInputs.cache

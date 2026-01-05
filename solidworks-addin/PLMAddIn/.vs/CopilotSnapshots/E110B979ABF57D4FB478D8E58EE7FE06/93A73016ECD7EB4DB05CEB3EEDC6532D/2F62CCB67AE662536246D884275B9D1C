@@ -1,0 +1,275 @@
+﻿# PLM System - Phase 1 Complete: Folder Structure Update
+
+**Date:** January 4, 2026  
+**Status:** ✅ PHASE 1 COMPLETE - Ready for C# Integration  
+**Python GUI:** ✅ Working - Creates files, freezes versions  
+**C# Add-in:** 🔄 NEEDS UPDATE - New folder structure
+
+---
+
+## 🎯 NEW FOLDER STRUCTURE (Phase 1 Complete)
+
+### Per-Project Layout
+All files are organized **per project**, NOT at vault root.
+
+```
+D:\Anurag\PLM_VAULT\
+└── Projects/
+    └── MotorAssembly/                    (Project created by GUI)
+        │
+        ├── Working/
+        │   └── Parts/
+        │       ├── Bracket.SLDPRT        (Flat structure - user edits here)
+        │       ├── Housing.SLDPRT
+        │       └── MotorBlock.SLDPRT
+        │
+        └── Parts/                         (Versioned - immutable snapshots)
+            ├── Bracket/
+            │   ├── part_meta.json        (Tracks state: Working/Frozen/Released)
+            │   ├── v001/
+            │   │   ├── Bracket.SLDPRT    (Frozen snapshot - immutable)
+            │   │   └── version_meta.json  (Timestamp, author, notes)
+            │   └── v002/
+            │       ├── Bracket.SLDPRT
+            │       └── version_meta.json
+            │
+            └── Housing/
+                ├── part_meta.json
+                └── v001/
+                    ├── Housing.SLDPRT
+                    └── version_meta.json
+```
+
+### Metadata Files
+
+**part_meta.json** (in Parts/FileName/)
+```json
+{
+  "latest_version": "v002",
+  "released_version": "v001",
+  "state": "Frozen"
+}
+```
+
+**version_meta.json** (in Parts/FileName/vNNN/)
+```json
+{
+  "version": "v001",
+  "created_by": "john.doe",
+  "created_timestamp": "2026-01-04T14:30:00Z",
+  "change_note": "Initial freeze after design review",
+  "state": "Frozen"
+}
+```
+
+---
+
+## 🔧 C# ADD-IN REQUIREMENTS (Phase 1)
+
+### On SolidWorks File Save Event
+
+**Current (WRONG):**
+```csharp
+// Old: copying to wrong location
+File.Copy(swFile, "working/Bracket.SLDPRT");
+```
+
+**NEW (CORRECT):**
+```csharp
+// Must copy to: Projects/ProjectName/Working/Parts/FileName.SLDPRT
+
+string projectPath = GetProjectPath();  // TODO: Implement
+string workingPartsFolder = Path.Combine(projectPath, "Working", "Parts");
+Directory.CreateDirectory(workingPartsFolder);
+
+string fileName = Path.GetFileName(swFile);
+string destFile = Path.Combine(workingPartsFolder, fileName);
+
+// Copy file
+File.Copy(swFile, destFile, overwrite: true);
+
+// Update metadata
+UpdatePartMetadata(Path.Combine(projectPath, "Parts", 
+    Path.GetFileNameWithoutExtension(fileName)));
+```
+
+### Required Information
+
+The C# add-in needs to know:
+
+1. **Project Path** - Where should files be saved?
+   - Option 1: Query database
+   - Option 2: Read from environment variable: `PLM_PROJECT_PATH`
+   - Option 3: Registry key: `HKEY_CURRENT_USER\Software\PLM\CurrentProject`
+   - **RECOMMENDATION:** Environment variable + registry fallback
+
+2. **File Type Detection** - Determine SLDPRT/SLDASM/SLDDRW
+   - Use `swDoc.GetType()` to detect part vs assembly vs drawing
+   - Map to correct folder structure
+
+3. **Metadata Update** - Update part_meta.json after save
+   ```json
+   {
+     "latest_version": "v000",
+     "released_version": null,
+     "state": "Working"
+   }
+---
+
+## 📋 WORKFLOW (Phase 1)
+
+### 1️⃣ CREATE FILE (Python GUI)
+```
+GUI: "Create File" dialog
+→ Create: Projects/MotorAssembly/Working/Parts/Bracket.SLDPRT (empty)
+→ Create: Projects/MotorAssembly/Parts/Bracket/part_meta.json
+→ Database: Record file metadata
+```
+
+### 2️⃣ USER EDITS IN SOLIDWORKS (C# Add-in)
+```
+User: Opens Bracket.SLDPRT in SolidWorks
+C# Add-in: OnFileSave event fires
+→ Copy to: Projects/MotorAssembly/Working/Parts/Bracket.SLDPRT
+→ Update: Projects/MotorAssembly/Parts/Bracket/part_meta.json
+   state = "Working"
+→ Do NOT create version (user hasn't frozen yet)
+```
+
+### 3️⃣ FREEZE VERSION (Python GUI)
+```
+User: Clicks "Create Version" button in GUI
+→ Copy: Working/Parts/Bracket.SLDPRT → Parts/Bracket/v001/Bracket.SLDPRT
+→ Create: Parts/Bracket/v001/version_meta.json
+→ Update: Parts/Bracket/part_meta.json
+   latest_version = "v001"
+   state = "Frozen"
+→ Database: Record version + lock working copy
+```
+
+### 4️⃣ RELEASE VERSION (Python GUI - NOT YET IMPLEMENTED)
+```
+User: Clicks "Release Version" button in GUI (future)
+→ Update: Parts/Bracket/part_meta.json
+   released_version = "v001"
+→ Database: Update lifecycle_state = "Released"
+→ No file copying - just metadata update
+```
+
+### 5️⃣ REWORK (Python GUI - NOT YET IMPLEMENTED)
+```
+User: Clicks "Rework" button in GUI (future)
+→ Copy: Parts/Bracket/v001/Bracket.SLDPRT → Working/Parts/Bracket.SLDPRT
+→ Update: part_meta.json
+   state = "Working"
+→ Database: Unlock working copy
+```
+
+---
+
+## ⚠️ CRITICAL POINTS FOR C# ADD-IN
+
+### Must NOT Do:
+- ❌ Create version folders (v001/, v002/) - GUI handles this
+- ❌ Create database records - Python GUI handles this
+- ❌ Delete or modify frozen versions - they're immutable
+- ❌ Update version_meta.json - GUI creates these on freeze
+- ❌ Use global Working/ or Parts/ folders - MUST be per-project
+
+### Must Do:
+- ✅ Copy file to `Projects/ProjectName/Working/Parts/FileName.ext`
+- ✅ Update `Projects/ProjectName/Parts/FileName/part_meta.json` with state = "Working"
+- ✅ Create Working/Parts/ folder if it doesn't exist
+- ✅ On every save, overwrite the working copy (not append)
+- ✅ Determine project path reliably (env var + fallback)
+
+---
+
+## 🔌 INTEGRATION POINTS
+
+### C# ↔ Python Communication
+
+| Event | C# Triggers | Python Responds |
+|-------|-----------|-----------------|
+| File Save | Copy to Working/Parts/ + Update metadata | Listen for metadata change, refresh GUI |
+| Freeze Button | N/A | Copy Working → Parts/vNNN/ + Update DB |
+| Release Button | N/A | Update part_meta.json + lifecycle_state |
+| Rework Button | N/A | Copy Parts/vNNN → Working + Unlock |
+
+**For now:** C# only handles file save → Working/Parts/
+
+---
+
+## 🚀 NEXT STEPS FOR C# DEVELOPMENT
+
+1. **Update FileSaveNotify handler:**
+   - Get project path (environment variable)
+   - Construct target path: `{projectPath}/Working/Parts/{fileName}.{ext}`
+   - Copy file with overwrite
+   - Create/update part_meta.json
+
+2. **Add GetProjectPath() method:**
+   ```csharp
+   private string GetProjectPath()
+   {
+       // First try environment variable
+       string? envPath = Environment.GetEnvironmentVariable("PLM_PROJECT_PATH");
+       if (!string.IsNullOrEmpty(envPath))
+           return envPath;
+       
+       // Fallback to registry
+       var regKey = Registry.CurrentUser.OpenSubKey(@"Software\PLM\");
+       return (string?)regKey?.GetValue("CurrentProject") ?? 
+              throw new Exception("Project path not found");
+   }
+   ```
+
+3. **Test with SolidWorks:**
+   - Open saved part file in SolidWorks
+   - Make a change and save
+   - Verify file copied to `Working/Parts/`
+   - Verify part_meta.json updated
+
+4. **Python GUI will handle the rest:**
+   - Freeze = copy to Parts/vNNN/
+   - Release = mark approved
+   - Rework = copy back to Working/
+
+---
+
+## 📝 TESTING CHECKLIST (After C# Update)
+
+- [ ] Open new SLDPRT in SolidWorks
+- [ ] Make a change, save
+- [ ] Verify file in: `Projects/ProjectName/Working/Parts/FileName.SLDPRT`
+- [ ] Verify `part_meta.json` exists and has `state: "Working"`
+- [ ] In GUI, click "Create Version" (Freeze)
+- [ ] Verify file in: `Projects/ProjectName/Parts/FileName/v001/`
+- [ ] Verify `version_meta.json` created with timestamp
+- [ ] Verify `part_meta.json` updated: `latest_version: "v001"`, `state: "Frozen"`
+- [ ] Make more changes in SolidWorks, save again
+- [ ] Verify Working copy updated, v001 unchanged
+- [ ] Click "Create Version" again
+- [ ] Verify v002 created with new copy
+
+---
+
+## 📞 QUESTIONS FOR VS TEAM
+
+1. How to reliably get current project path in C# add-in?
+   - Suggestion: Use environment variable `PLM_PROJECT_PATH` set by Python GUI
+   
+2. Should add-in create Working/Parts/ folders if they don't exist?
+   - Suggestion: Yes, use `Directory.CreateDirectory()`
+
+3. Should add-in validate that it's a PLM-managed file?
+   - Suggestion: Check if `Projects/ProjectName/Parts/FileName/part_meta.json` exists
+
+---
+
+**Status:** ✅ Ready for C# Implementation  
+**Owner:** Visual Studio Development Team  
+**Deadline:** When ready  
+**Questions?** Contact Python Team via this file
+
+================================================================================

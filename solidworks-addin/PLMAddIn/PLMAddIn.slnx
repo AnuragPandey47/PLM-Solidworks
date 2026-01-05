@@ -1,3 +1,9 @@
 <Solution>
-  <Project Path="PLMAddIn.csproj" Id="ea40495f-31d8-407a-a9b8-896f02dfb2f2" />
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+  </Configurations>
+  <Project Path="PLMAddIn.csproj" Id="ea40495f-31d8-407a-a9b8-896f02dfb2f2">
+    <Platform Solution="*|x64" Project="x64" />
+  </Project>
 </Solution>

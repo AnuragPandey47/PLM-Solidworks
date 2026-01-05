@@ -29,6 +29,27 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <RegisterForComInterop>true</RegisterForComInterop>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <RegisterForComInterop>true</RegisterForComInterop>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="SolidWorks.Interop.sldworks">
@@ -57,13 +78,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="PLMAddIn\Class1.cs" />
+    <Compile Include="PLMAddIn\COM\IVersionManagerCOM.cs" />
+    <Compile Include="PLMAddIn\COM\VersionManagerCOM.cs" />
+    <Compile Include="PLMAddIn\Lifecycle\LifecycleManager.cs" />
+    <Compile Include="PLMAddIn\Models\VersionInfo.cs" />
     <Compile Include="PLMAddIn\PLMAddInMain.cs" />
+    <Compile Include="PLMAddIn\Services\FileService.cs" />
+    <Compile Include="PLMAddIn\Services\MetadataService.cs" />
+    <Compile Include="PLMAddIn\Services\VersionManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="PLMAddIn\IMPLEMENTATION_SUMMARY.md" />
     <None Include="PLMAddIn\PLMAddIn.csproj.fixed" />
     <None Include="PLMAddIn\PLMAddIn.csproj.new" />
+    <None Include="PLMAddIn\PROJECT_STATUS.md" />
     <None Include="PLMAddIn\QUICKSTART.md" />
     <None Include="PLMAddIn\README.md" />
     <None Include="PLMAddIn\RegisterAddIn.bat" />
@@ -73,4 +102,13 @@
     <None Include="PLMAddIn\UnregisterAddIn.reg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>xcopy "C:\Program Files\SOLIDWORKS Corp 2021\SOLIDWORKS\api\redist\SolidWorks.Interop.sldworks.dll" "$(TargetDir)" /Y /I
+xcopy "C:\Program Files\SOLIDWORKS Corp 2021\SOLIDWORKS\api\redist\SolidWorks.Interop.swconst.dll" "$(TargetDir)" /Y /I
+xcopy "C:\Program Files\SOLIDWORKS Corp 2021\SOLIDWORKS\api\redist\SolidWorks.Interop.swpublished.dll" "$(TargetDir)" /Y /I</PreBuildEvent>
+  </PropertyGroup>
 </Project>

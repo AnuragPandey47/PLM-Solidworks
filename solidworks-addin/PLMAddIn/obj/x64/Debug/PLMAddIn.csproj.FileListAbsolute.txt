@@ -1,0 +1,7 @@
+D:\Anurag\PLM-Solidworks\solidworks-addin\PLMAddIn\bin\x64\Debug\PLMAddIn.dll
+D:\Anurag\PLM-Solidworks\solidworks-addin\PLMAddIn\bin\x64\Debug\PLMAddIn.pdb
+D:\Anurag\PLM-Solidworks\solidworks-addin\PLMAddIn\bin\x64\Debug\PLMAddIn.tlb
+D:\Anurag\PLM-Solidworks\solidworks-addin\PLMAddIn\obj\x64\Debug\PLMAddIn.csproj.AssemblyReference.cache
+D:\Anurag\PLM-Solidworks\solidworks-addin\PLMAddIn\obj\x64\Debug\PLMAddIn.csproj.CoreCompileInputs.cache
+D:\Anurag\PLM-Solidworks\solidworks-addin\PLMAddIn\obj\x64\Debug\PLMAddIn.dll
+D:\Anurag\PLM-Solidworks\solidworks-addin\PLMAddIn\obj\x64\Debug\PLMAddIn.pdb

@@ -1,0 +1,130 @@
+﻿using System;
+using System.IO;
+using System.Web.Script.Serialization;
+using PLMAddIn.Models;
+
+namespace PLMAddIn.Services
+{
+    /// <summary>
+    /// Handles version metadata storage and retrieval using JSON
+    /// </summary>
+    public class MetadataService
+    {
+        private const string MetadataFileName = "metadata.json";
+
+        /// <summary>
+        /// Saves version metadata to JSON file
+        /// </summary>
+        public void SaveVersionMetadata(string versionDir, VersionInfo versionInfo)
+        {
+            if (!Directory.Exists(versionDir))
+                throw new DirectoryNotFoundException($"Version directory not found: {versionDir}");
+
+            string metadataPath = Path.Combine(versionDir, MetadataFileName);
+
+            // Manual JSON serialization for .NET Framework 4.8
+            string json = $@"{{
+  ""Version"": ""{versionInfo.Version}"",
+  ""FileName"": ""{versionInfo.FileName}"",
+  ""Author"": ""{versionInfo.Author}"",
+  ""Timestamp"": ""{versionInfo.Timestamp:yyyy-MM-ddTHH:mm:ss}"",
+  ""FileSize"": {versionInfo.FileSize},
+  ""Notes"": ""{versionInfo.Notes.Replace("\"", "\\\"")}"",
+  ""FilePath"": ""{versionInfo.FilePath.Replace("\\", "\\\\")}"",
+  ""IsLocked"": {versionInfo.IsLocked.ToString().ToLower()}
+}}";
+
+            File.WriteAllText(metadataPath, json);
+        }
+
+        /// <summary>
+        /// Loads version metadata from JSON file
+        /// </summary>
+        public VersionInfo LoadVersionMetadata(string versionDir)
+        {
+            string metadataPath = Path.Combine(versionDir, MetadataFileName);
+
+            if (!File.Exists(metadataPath))
+                return null;
+
+            try
+            {
+                string json = File.ReadAllText(metadataPath);
+                return ParseJson(json);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading metadata: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Simple JSON parser for VersionInfo
+        /// </summary>
+        private VersionInfo ParseJson(string json)
+        {
+            var info = new VersionInfo();
+            
+            info.Version = ExtractValue(json, "Version");
+            info.FileName = ExtractValue(json, "FileName");
+            info.Author = ExtractValue(json, "Author");
+            info.Notes = ExtractValue(json, "Notes");
+            info.FilePath = ExtractValue(json, "FilePath");
+            
+            string timestamp = ExtractValue(json, "Timestamp");
+            if (DateTime.TryParse(timestamp, out DateTime dt))
+                info.Timestamp = dt;
+            
+            string fileSize = ExtractValue(json, "FileSize");
+            if (long.TryParse(fileSize, out long size))
+                info.FileSize = size;
+            
+            string isLocked = ExtractValue(json, "IsLocked");
+            info.IsLocked = isLocked == "true";
+            
+            return info;
+        }
+
+        private string ExtractValue(string json, string key)
+        {
+            string pattern = $"\"{key}\": \"";
+            int start = json.IndexOf(pattern);
+            if (start == -1)
+            {
+                // Try number pattern
+                pattern = $"\"{key}\": ";
+                start = json.IndexOf(pattern);
+                if (start == -1) return "";
+                start += pattern.Length;
+                int end = json.IndexOfAny(new[] { ',', '}', '\n' }, start);
+                return json.Substring(start, end - start).Trim();
+            }
+            
+            start += pattern.Length;
+            int end2 = json.IndexOf("\"", start);
+            return json.Substring(start, end2 - start);
+        }
+
+        /// <summary>
+        /// Checks if metadata file exists
+        /// </summary>
+        public bool MetadataExists(string versionDir)
+        {
+            string metadataPath = Path.Combine(versionDir, MetadataFileName);
+            return File.Exists(metadataPath);
+        }
+
+        /// <summary>
+        /// Deletes metadata file
+        /// </summary>
+        public void DeleteMetadata(string versionDir)
+        {
+            string metadataPath = Path.Combine(versionDir, MetadataFileName);
+            if (File.Exists(metadataPath))
+            {
+                File.Delete(metadataPath);
+            }
+        }
+    }
+}

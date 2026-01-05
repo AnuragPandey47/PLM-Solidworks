@@ -8,6 +8,9 @@ import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog
 import sys
 import os
+import json
+import sqlite3
+import shutil
 from pathlib import Path
 from datetime import datetime
 
@@ -24,14 +27,14 @@ class PLMGUI:
         self.root.title("PLM System - Desktop Manager")
         self.root.geometry("1200x700")
         
-        # Initialize database
-        vault_path_str = os.getenv("PLM_VAULT_PATH", r"e:\PLM_VAULT")
-        vault_path = Path(vault_path_str)
-        if not vault_path.exists():
+        # Find vault path from config.json or environment variable
+        vault_path_str = self._find_vault_path()
+        self.vault_root = Path(vault_path_str)
+        if not self.vault_root.exists():
             messagebox.showerror("Error", f"PLM vault not found at {vault_path_str}\n\nRun SETUP.py first to initialize.")
             sys.exit(1)
         
-        self.db = PLMDatabase(str(vault_path))
+        self.db = PLMDatabase(str(self.vault_root))
         self.current_user = os.getenv("USERNAME", "Unknown")
         
         # Initialize combo boxes as None (will be created in tabs)
@@ -47,17 +50,41 @@ class PLMGUI:
         self.notebook = ttk.Notebook(root)
         self.notebook.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
         
+        # Initialize tabs
+        self.__init_tabs()
+        
+    def _find_vault_path(self) -> str:
+        """Find vault path from config.json or environment variable"""
+        # Check common vault locations
+        search_paths = [
+            Path("D:/Anurag/PLM_VAULT/config.json"),
+            Path("E:/PLM_VAULT/config.json"),
+            Path(os.getenv("PLM_VAULT_PATH", "")) / "config.json" if os.getenv("PLM_VAULT_PATH") else None
+        ]
+        
+        for config_path in search_paths:
+            if config_path and config_path.exists():
+                try:
+                    with open(config_path, 'r') as f:
+                        config = json.load(f)
+                        return config.get("vault_path", "")
+                except Exception:
+                    continue
+        
+        # Fallback to environment variable or default
+        return os.getenv("PLM_VAULT_PATH", r"e:\PLM_VAULT")
+    
+    def __init_tabs(self):
+        """Initialize GUI tabs after database is ready"""
         # Create tabs
         self.create_projects_tab()
         self.create_files_tab()
-        self.create_versions_tab()
-        self.create_locks_tab()
-        self.create_audit_tab()
+        self.create_history_tab()
         
         # Status bar
         self.status_var = tk.StringVar()
         self.status_var.set(f"Connected as: {self.current_user}")
-        status_bar = ttk.Label(root, textvariable=self.status_var, relief=tk.SUNKEN)
+        status_bar = ttk.Label(self.root, textvariable=self.status_var, relief=tk.SUNKEN)
         status_bar.pack(fill=tk.X, padx=5, pady=2)
     
     def create_projects_tab(self):
@@ -70,6 +97,7 @@ class PLMGUI:
         btn_frame.pack(fill=tk.X, padx=5, pady=5)
         
         ttk.Button(btn_frame, text="Create Project", command=self.create_project).pack(side=tk.LEFT, padx=2)
+        ttk.Button(btn_frame, text="Delete Project", command=self.delete_project).pack(side=tk.LEFT, padx=2)
         ttk.Button(btn_frame, text="Refresh", command=self.refresh_projects).pack(side=tk.LEFT, padx=2)
         
         # Treeview
@@ -108,7 +136,6 @@ class PLMGUI:
         self.project_combo.pack(side=tk.LEFT, padx=2)
         self.project_combo.bind("<<ComboboxSelected>>", lambda e: self.refresh_files())
         
-        ttk.Button(selector_frame, text="Create File", command=self.create_file).pack(side=tk.LEFT, padx=2)
         ttk.Button(selector_frame, text="Refresh", command=self.refresh_files).pack(side=tk.LEFT, padx=2)
         
         # Treeview
@@ -133,10 +160,10 @@ class PLMGUI:
         
         self.refresh_projects()
     
-    def create_versions_tab(self):
-        """Versions management tab"""
+    def create_history_tab(self):
+        """Version history tab (read-only)"""
         frame = ttk.Frame(self.notebook)
-        self.notebook.add(frame, text="Versions")
+        self.notebook.add(frame, text="History")
         
         # File selector
         selector_frame = ttk.Frame(frame)
@@ -147,9 +174,6 @@ class PLMGUI:
         self.file_combo.pack(side=tk.LEFT, padx=2)
         self.file_combo.bind("<<ComboboxSelected>>", lambda e: self.refresh_versions())
         
-        # Action buttons
-        ttk.Button(selector_frame, text="Create Version", command=self.create_version).pack(side=tk.LEFT, padx=2)
-        ttk.Button(selector_frame, text="Freeze Version", command=self.freeze_version).pack(side=tk.LEFT, padx=2)
         ttk.Button(selector_frame, text="Refresh", command=self.refresh_versions).pack(side=tk.LEFT, padx=2)
         
         # Treeview
@@ -174,79 +198,6 @@ class PLMGUI:
         self.versions_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
     
-    def create_locks_tab(self):
-        """Lock management tab"""
-        frame = ttk.Frame(self.notebook)
-        self.notebook.add(frame, text="Locks")
-        
-        # Button frame
-        btn_frame = ttk.Frame(frame)
-        btn_frame.pack(fill=tk.X, padx=5, pady=5)
-        
-        ttk.Button(btn_frame, text="Acquire Lock", command=self.acquire_lock).pack(side=tk.LEFT, padx=2)
-        ttk.Button(btn_frame, text="Release Lock", command=self.release_lock).pack(side=tk.LEFT, padx=2)
-        ttk.Button(btn_frame, text="Clean Expired", command=self.clean_locks).pack(side=tk.LEFT, padx=2)
-        ttk.Button(btn_frame, text="Refresh", command=self.refresh_locks).pack(side=tk.LEFT, padx=2)
-        
-        # Treeview
-        columns = ("File", "User", "Acquired", "Expires")
-        self.locks_tree = ttk.Treeview(frame, columns=columns, height=20)
-        self.locks_tree.heading("#0", text="ID")
-        self.locks_tree.column("#0", width=30)
-        self.locks_tree.heading("File", text="File Name")
-        self.locks_tree.column("File", width=200)
-        self.locks_tree.heading("User", text="Locked By")
-        self.locks_tree.column("User", width=100)
-        self.locks_tree.heading("Acquired", text="Acquired At")
-        self.locks_tree.column("Acquired", width=150)
-        self.locks_tree.heading("Expires", text="Expires At")
-        self.locks_tree.column("Expires", width=150)
-        
-        scrollbar = ttk.Scrollbar(frame, orient=tk.VERTICAL, command=self.locks_tree.yview)
-        self.locks_tree.configure(yscrollcommand=scrollbar.set)
-        
-        self.locks_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        
-        self.refresh_locks()
-    
-    def create_audit_tab(self):
-        """Audit log tab"""
-        frame = ttk.Frame(self.notebook)
-        self.notebook.add(frame, text="Audit Log")
-        
-        # Filter frame
-        filter_frame = ttk.Frame(frame)
-        filter_frame.pack(fill=tk.X, padx=5, pady=5)
-        
-        ttk.Label(filter_frame, text="Limit:").pack(side=tk.LEFT, padx=2)
-        self.audit_limit = ttk.Combobox(filter_frame, values=["10", "20", "50", "100", "200"], state="readonly", width=5)
-        self.audit_limit.set("50")
-        self.audit_limit.pack(side=tk.LEFT, padx=2)
-        
-        ttk.Button(filter_frame, text="Refresh", command=self.refresh_audit).pack(side=tk.LEFT, padx=2)
-        
-        # Treeview
-        columns = ("Timestamp", "User", "Action", "Details")
-        self.audit_tree = ttk.Treeview(frame, columns=columns, height=25)
-        self.audit_tree.heading("#0", text="ID")
-        self.audit_tree.column("#0", width=30)
-        self.audit_tree.heading("Timestamp", text="Timestamp")
-        self.audit_tree.column("Timestamp", width=150)
-        self.audit_tree.heading("User", text="User")
-        self.audit_tree.column("User", width=100)
-        self.audit_tree.heading("Action", text="Action")
-        self.audit_tree.column("Action", width=150)
-        self.audit_tree.heading("Details", text="Details")
-        self.audit_tree.column("Details", width=400)
-        
-        scrollbar = ttk.Scrollbar(frame, orient=tk.VERTICAL, command=self.audit_tree.yview)
-        self.audit_tree.configure(yscrollcommand=scrollbar.set)
-        
-        self.audit_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        
-        self.refresh_audit()
     
     # Refresh methods
     def refresh_projects(self):
@@ -254,13 +205,19 @@ class PLMGUI:
         self.projects_tree.delete(*self.projects_tree.get_children())
         projects = self.db.list_projects()
         
+        valid_projects = []
         for proj in projects:
-            self.projects_tree.insert("", "end", text=proj["name"],
-                values=(proj["plm_id"], proj["owner"], proj["created_date"], "Yes"))
+            # Only show projects that exist on disk
+            proj_path = Path(proj.get("vault_path", ""))
+            if proj_path.exists():
+                created = proj.get("created_date", "N/A")
+                self.projects_tree.insert("", "end", text=proj["name"],
+                    values=(proj["plm_id"], proj.get("owner", ""), created, "Yes"))
+                valid_projects.append(proj)
         
         # Update combo if it exists
         if self.project_combo is not None:
-            self.project_combo["values"] = [p["name"] for p in projects]
+            self.project_combo["values"] = [p["name"] for p in valid_projects]
         if self.file_combo is not None:
             self.file_combo["values"] = []
     
@@ -285,13 +242,14 @@ class PLMGUI:
         files = self.db.list_project_files(project["project_id"])
         valid_files = []
         for f in files:
-            # Check if v001 folder exists (file is stored in versioned structure)
+            # Check if file exists in new structure: Parts/FileName/part_meta.json
             file_folder = Path(f["vault_path"])
-            v001_folder = file_folder / "v001"
-            if v001_folder.exists():
+            metadata_file = file_folder / "part_meta.json"
+            if metadata_file.exists():
                 locked = f.get("locked_by", "")
+                state = f.get("file_state", "Working")
                 self.files_tree.insert("", "end", text=f["file_name"],
-                    values=(f["plm_id"], f["file_type"], locked, f.get("lifecycle_state", "In-Work")))
+                    values=(f["plm_id"], f["file_type"], locked, state))
                 valid_files.append(f)
         
         # Update combo if it exists
@@ -335,31 +293,6 @@ class PLMGUI:
                        v.get("author", ""), v.get("created_timestamp", ""), 
                        v.get("change_note", "")))
     
-    def refresh_locks(self):
-        """Refresh locks list"""
-        self.locks_tree.delete(*self.locks_tree.get_children())
-        
-        locks = self.db.get_active_locks()
-        for lock in locks:
-            file = self.db.get_file(lock["file_id"])
-            self.locks_tree.insert("", "end", text=str(lock["id"]),
-                values=(file["file_name"] if file else "?", lock["locked_by"],
-                       lock["locked_at"], lock["expires_at"]))
-    
-    def refresh_audit(self):
-        """Refresh audit log"""
-        self.audit_tree.delete(*self.audit_tree.get_children())
-        
-        if self.audit_limit is None:
-            return
-        
-        limit = int(str(self.audit_limit.get()))
-        logs = self.db.get_audit_trail(limit=limit)
-        
-        for log in logs:
-            self.audit_tree.insert("", "end", text=str(log["id"]),
-                values=(log["timestamp"], log["user"], log["action"], log.get("details", "")))
-    
     # Action methods
     def create_project(self):
         """Create new project dialog"""
@@ -384,12 +317,26 @@ class PLMGUI:
                 return
             
             try:
+                # Check if project already exists
+                existing_projects = self.db.list_projects()
+                if any(p["name"].lower() == name.lower() for p in existing_projects):
+                    messagebox.showerror("Error", f"Project '{name}' already exists")
+                    return
+                
                 # Create project in database
                 result = self.db.create_project(name, self.current_user, desc)
                 
-                # Create project folder on disk
-                project_path = Path(os.getenv("PLM_VAULT_PATH", r"e:\PLM_VAULT")) / "Projects" / name
+                # Create project folder structure on disk
+                project_path = self.vault_root / "Projects" / name
                 project_path.mkdir(parents=True, exist_ok=True)
+                
+                # Create Working/Parts subfolder
+                working_parts = project_path / "Working" / "Parts"
+                working_parts.mkdir(parents=True, exist_ok=True)
+                
+                # Create Parts subfolder (for versions)
+                parts_folder = project_path / "Parts"
+                parts_folder.mkdir(parents=True, exist_ok=True)
                 
                 messagebox.showinfo("Success", f"Project '{name}' created")
                 self.refresh_projects()
@@ -399,276 +346,65 @@ class PLMGUI:
         
         ttk.Button(dialog, text="Create", command=save).grid(row=2, column=1, padx=5, pady=10, sticky="e")
     
-    def create_file(self):
-        """Create new file dialog"""
-        if self.project_combo is None:
-            messagebox.showerror("Error", "Files tab not initialized")
-            return
-        
-        project_name = self.project_combo.get()
-        if not project_name:
-            messagebox.showerror("Error", "Select a project first")
-            return
-        
-        # Get project ID
-        projects = self.db.list_projects()
-        project_id = None
-        for p in projects:
-            if p['name'] == project_name:
-                project_id = p['project_id']
-                break
-        
-        if not project_id:
-            messagebox.showerror("Error", "Project not found")
-            return
-        
-        dialog = tk.Toplevel(self.root)
-        dialog.title("Create File")
-        dialog.geometry("400x250")
-        
-        ttk.Label(dialog, text="File Name:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
-        name_entry = ttk.Entry(dialog, width=30)
-        name_entry.grid(row=0, column=1, padx=5, pady=5)
-        
-        ttk.Label(dialog, text="File Type:").grid(row=1, column=0, padx=5, pady=5, sticky="w")
-        type_combo = ttk.Combobox(dialog, values=["PART", "ASSEMBLY", "DRAWING"], width=27, state="readonly")
-        type_combo.grid(row=1, column=1, padx=5, pady=5)
-        type_combo.current(0)
-        
-        ttk.Label(dialog, text="Description:").grid(row=2, column=0, padx=5, pady=5, sticky="nw")
-        desc_text = tk.Text(dialog, width=30, height=4)
-        desc_text.grid(row=2, column=1, padx=5, pady=5)
-        
-        def save():
-            name = name_entry.get().strip()
-            file_type = type_combo.get()
-            desc = desc_text.get("1.0", "end").strip()
-            
-            if not name:
-                messagebox.showerror("Error", "File name required")
-                return
-            
-            try:
-                # Create folder structure: Projects/ProjectName/FileName/v001/
-                base_vault_path = Path(os.getenv("PLM_VAULT_PATH", r"e:\PLM_VAULT")) / "Projects" / project_name
-                file_folder = base_vault_path / name
-                version_folder = file_folder / "v001"
-                version_folder.mkdir(parents=True, exist_ok=True)
-                
-                # Determine file extension based on type
-                ext_map = {"PART": ".SLDPRT", "ASSEMBLY": ".SLDASM", "DRAWING": ".SLDDRW"}
-                ext = ext_map.get(file_type, ".txt")
-                file_path = version_folder / f"{name}{ext}"
-                
-                # Create the file on disk in v001 folder
-                file_path.touch()
-                
-                # Store vault_path as folder path (not file path)
-                self.db.create_file(project_id, name, file_type, str(file_folder), desc)
-                messagebox.showinfo("Success", f"File '{name}' created")
-                self.refresh_files()
-                dialog.destroy()
-            except Exception as e:
-                messagebox.showerror("Error", str(e))
-        
-        ttk.Button(dialog, text="Create", command=save).grid(row=3, column=1, padx=5, pady=10, sticky="e")
-    
-    
-    def create_version(self):
-        """Create new version dialog"""
-        if self.file_combo is None:
-            messagebox.showerror("Error", "Files tab not initialized")
-            return
-        
-        file_name = self.file_combo.get()
-        if not file_name:
-            messagebox.showerror("Error", "Select a file first")
-            return
-        
-        note = simpledialog.askstring("Create Version", "Change note (optional):", parent=self.root)
-        if note is None:
-            return
-        
-        try:
-            # Find file
-            if self.project_combo is None:
-                raise Exception("Project selector not initialized")
-            
-            projects = self.db.list_projects()
-            if not projects:
-                raise Exception("No projects found")
-            project_name = self.project_combo.get()
-            project = next((p for p in projects if p["name"] == project_name), None)
-            if not project:
-                raise Exception("Project not found")
-            files = self.db.list_project_files(project["project_id"])
-            if not files:
-                raise Exception("No files found")
-            file = next((f for f in files if f["file_name"] == file_name), None)
-            if not file:
-                raise Exception("File not found")
-            
-            # Get current version number
-            versions = self.db.list_file_versions(file["file_id"])
-            next_version = len(versions) + 1
-            
-            # Create version folders
-            file_folder = Path(file.get("vault_path", ""))
-            if not file_folder.exists():
-                raise Exception(f"File folder not found: {file_folder}")
-            
-            # Get file name and type
-            file_name = file["file_name"]
-            file_type = file["file_type"]
-            ext_map = {"PART": ".SLDPRT", "ASSEMBLY": ".SLDASM", "DRAWING": ".SLDDRW"}
-            ext = ext_map.get(file_type, ".txt")
-            
-            # Create new version folder
-            version_folder = file_folder / f"v{next_version:03d}"
-            version_folder.mkdir(parents=True, exist_ok=True)
-            
-            # Copy file from previous version
-            if next_version > 1:
-                prev_version_folder = file_folder / f"v{next_version-1:03d}"
-                prev_file = prev_version_folder / f"{file_name}{ext}"
-                new_file = version_folder / f"{file_name}{ext}"
-                if prev_file.exists():
-                    import shutil
-                    shutil.copy2(prev_file, new_file)
-            else:
-                # First version already exists
-                new_file = version_folder / f"{file_name}{ext}"
-                if not new_file.exists():
-                    new_file.touch()
-            
-            # Create database entry
-            self.db.create_version(file["file_id"], self.current_user, change_note=note)
-            
-            messagebox.showinfo("Success", f"Version v{next_version:03d} created")
-            self.refresh_versions()
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
-    
-    def freeze_version(self):
-        """Freeze selected version"""
-        selection = self.versions_tree.selection()
+    def delete_project(self):
+        """Delete selected project"""
+        selection = self.projects_tree.selection()
         if not selection:
-            messagebox.showerror("Error", "Select a version")
+            messagebox.showwarning("Warning", "Select a project to delete")
             return
         
-        if self.file_combo is None:
-            messagebox.showerror("Error", "Files tab not initialized")
-            return
-        
-        file_name = self.file_combo.get()
         item = selection[0]
-        values = self.versions_tree.item(item, "values")
-        version_num = int(values[0])
+        project_name = self.projects_tree.item(item, "text")
         
-        if messagebox.askyesno("Confirm", f"Freeze version v{version_num:03d}? (Read-Only)"):
+        # Confirm deletion
+        if messagebox.askyesno("Confirm", f"Delete project '{project_name}'?\nThis will remove the project folder and all files."):
             try:
-                if self.project_combo is None:
-                    raise Exception("Project selector not initialized")
-                
+                # Get project from database
                 projects = self.db.list_projects()
-                if not projects:
-                    raise Exception("No projects found")
-                project_name = self.project_combo.get()
                 project = next((p for p in projects if p["name"] == project_name), None)
-                if not project:
-                    raise Exception("Project not found")
-                files = self.db.list_project_files(project["project_id"])
-                if not files:
-                    raise Exception("No files found")
-                file = next((f for f in files if f["file_name"] == file_name), None)
-                if not file:
-                    raise Exception("File not found")
                 
-                self.db.freeze_version(file["file_id"], version_num, self.current_user)
-                messagebox.showinfo("Success", f"Version v{version_num:03d} frozen")
-                self.refresh_versions()
-                self.refresh_locks()
+                if not project:
+                    messagebox.showerror("Error", f"Project '{project_name}' not found")
+                    return
+                
+                project_id = project["project_id"]
+                project_path = Path(project["vault_path"])
+                
+                # Delete from database
+                conn = sqlite3.connect(self.db.db_path)
+                conn.execute("PRAGMA foreign_keys = ON")
+                cursor = conn.cursor()
+                
+                # Get all files in project
+                cursor.execute("SELECT file_id FROM files WHERE project_id = ?", (project_id,))
+                file_ids = [row[0] for row in cursor.fetchall()]
+                
+                # Delete related data
+                for file_id in file_ids:
+                    cursor.execute("DELETE FROM file_locks WHERE file_id = ?", (file_id,))
+                    cursor.execute("DELETE FROM assembly_relationships WHERE assembly_file_id = ? OR component_file_id = ?", (file_id, file_id))
+                    cursor.execute("DELETE FROM version_transitions WHERE version_id IN (SELECT version_id FROM versions WHERE file_id = ?)", (file_id,))
+                    cursor.execute("DELETE FROM versions WHERE file_id = ?", (file_id,))
+                
+                cursor.execute("DELETE FROM access_log WHERE project_id = ?", (project_id,))
+                cursor.execute("DELETE FROM files WHERE project_id = ?", (project_id,))
+                cursor.execute("DELETE FROM projects WHERE project_id = ?", (project_id,))
+                
+                conn.commit()
+                conn.close()
+                
+                # Delete folder from disk if it exists
+                if project_path.exists():
+                    import shutil
+                    shutil.rmtree(project_path)
+                
+                messagebox.showinfo("Success", f"Project '{project_name}' deleted")
+                self.refresh_projects()
+                
             except Exception as e:
-                messagebox.showerror("Error", str(e))
+                messagebox.showerror("Error", f"Failed to delete project: {str(e)}")
     
-    def acquire_lock(self):
-        """Acquire lock for file"""
-        if self.file_combo is None:
-            messagebox.showerror("Error", "Files tab not initialized")
-            return
-        
-        file_name = self.file_combo.get()
-        if not file_name:
-            messagebox.showerror("Error", "Select a file first")
-            return
-        
-        try:
-            if self.project_combo is None:
-                raise Exception("Project selector not initialized")
-            
-            projects = self.db.list_projects()
-            if not projects:
-                raise Exception("No projects found")
-            project_name = self.project_combo.get()
-            project = next((p for p in projects if p["name"] == project_name), None)
-            if not project:
-                raise Exception("Project not found")
-            files = self.db.list_project_files(project["project_id"])
-            if not files:
-                raise Exception("No files found")
-            file = next((f for f in files if f["file_name"] == file_name), None)
-            if not file:
-                raise Exception("File not found")
-            
-            self.db.acquire_lock(file["file_id"], self.current_user, "Edit")
-            messagebox.showinfo("Success", "Lock acquired (24 hours)")
-            self.refresh_locks()
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
     
-    def release_lock(self):
-        """Release lock for file"""
-        if self.file_combo is None:
-            messagebox.showerror("Error", "Files tab not initialized")
-            return
-        
-        file_name = self.file_combo.get()
-        if not file_name:
-            messagebox.showerror("Error", "Select a file first")
-            return
-        
-        try:
-            if self.project_combo is None:
-                raise Exception("Project selector not initialized")
-            
-            projects = self.db.list_projects()
-            if not projects:
-                raise Exception("No projects found")
-            project_name = self.project_combo.get()
-            project = next((p for p in projects if p["name"] == project_name), None)
-            if not project:
-                raise Exception("Project not found")
-            files = self.db.list_project_files(project["project_id"])
-            if not files:
-                raise Exception("No files found")
-            file = next((f for f in files if f["file_name"] == file_name), None)
-            if not file:
-                raise Exception("File not found")
-            
-            self.db.release_lock(file["file_id"], self.current_user)
-            messagebox.showinfo("Success", "Lock released")
-            self.refresh_locks()
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
-    
-    def clean_locks(self):
-        """Clean expired locks"""
-        try:
-            self.db.clean_stale_locks()
-            messagebox.showinfo("Success", "Expired locks cleaned")
-            self.refresh_locks()
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
 
 
 def main():

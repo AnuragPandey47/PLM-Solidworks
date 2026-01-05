@@ -1,0 +1,123 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using PLMAddIn.Models;
+
+namespace PLMAddIn.Services
+{
+    /// <summary>
+    /// Manages version creation and retrieval for PLM system
+    /// </summary>
+    public class VersionManager
+    {
+        private readonly FileService _fileService;
+        private readonly MetadataService _metadataService;
+
+        public VersionManager()
+        {
+            _fileService = new FileService();
+            _metadataService = new MetadataService();
+        }
+
+        /// <summary>
+        /// Creates a new version from the working directory
+        /// </summary>
+        public VersionInfo CreateVersion(string workingFilePath, string notes = "")
+        {
+            if (!File.Exists(workingFilePath))
+                throw new FileNotFoundException("Working file not found", workingFilePath);
+
+            FileInfo fileInfo = new FileInfo(workingFilePath);
+            string projectDir = fileInfo.Directory.Parent.FullName;
+            string vaultDir = Path.Combine(projectDir, "vault");
+
+            // Get next version number
+            string nextVersion = GetNextVersionNumber(vaultDir);
+            string versionDir = Path.Combine(vaultDir, nextVersion);
+
+            // Create version directory
+            Directory.CreateDirectory(versionDir);
+
+            // Copy file to version directory
+            string versionFilePath = Path.Combine(versionDir, fileInfo.Name);
+            File.Copy(workingFilePath, versionFilePath, overwrite: true);
+
+            // Make file read-only (immutable)
+            _fileService.SetReadOnly(versionFilePath, true);
+
+            // Create version metadata
+            var versionInfo = new VersionInfo
+            {
+                Version = nextVersion,
+                FileName = fileInfo.Name,
+                Author = Environment.UserName,
+                Timestamp = DateTime.Now,
+                FileSize = fileInfo.Length,
+                Notes = notes,
+                FilePath = versionFilePath,
+                IsLocked = true
+            };
+
+            // Save metadata
+            _metadataService.SaveVersionMetadata(versionDir, versionInfo);
+
+            return versionInfo;
+        }
+
+        /// <summary>
+        /// Gets version history for a file
+        /// </summary>
+        public List<VersionInfo> GetVersionHistory(string workingFilePath)
+        {
+            FileInfo fileInfo = new FileInfo(workingFilePath);
+            string projectDir = fileInfo.Directory.Parent.FullName;
+            string vaultDir = Path.Combine(projectDir, "vault");
+
+            if (!Directory.Exists(vaultDir))
+                return new List<VersionInfo>();
+
+            var versions = new List<VersionInfo>();
+            var versionDirs = Directory.GetDirectories(vaultDir, "v*")
+                                       .OrderBy(d => d)
+                                       .ToList();
+
+            foreach (var dir in versionDirs)
+            {
+                var metadata = _metadataService.LoadVersionMetadata(dir);
+                if (metadata != null && metadata.FileName == fileInfo.Name)
+                {
+                    versions.Add(metadata);
+                }
+            }
+
+            return versions;
+        }
+
+        /// <summary>
+        /// Gets the next version number (v001, v002, etc.)
+        /// </summary>
+        private string GetNextVersionNumber(string vaultDir)
+        {
+            if (!Directory.Exists(vaultDir))
+            {
+                Directory.CreateDirectory(vaultDir);
+                return "v001";
+            }
+
+            var existingVersions = Directory.GetDirectories(vaultDir, "v*")
+                                            .Select(d => Path.GetFileName(d))
+                                            .Where(v => v.Length == 4 && v.StartsWith("v"))
+                                            .ToList();
+
+            if (!existingVersions.Any())
+                return "v001";
+
+            var maxVersion = existingVersions
+                .Select(v => int.Parse(v.Substring(1)))
+                .Max();
+
+            return $"v{(maxVersion + 1):D3}";
+        }
+    }
+}

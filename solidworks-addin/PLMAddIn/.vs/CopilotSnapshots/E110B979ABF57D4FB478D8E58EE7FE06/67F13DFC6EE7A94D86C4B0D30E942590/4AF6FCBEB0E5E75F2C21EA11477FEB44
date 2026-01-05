@@ -1,0 +1,274 @@
+﻿using System;
+using System.Diagnostics;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Timers;
+using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
+using SolidWorks.Interop.swpublished;
+
+namespace PLMAddIn
+{
+    [Guid("A7E8F9D2-3C4B-5E6A-7F8D-9C0B1A2E3D4F")]
+    [ComVisible(true)]
+    public class PLMAddInMain : ISwAddin
+    {
+        private ISldWorks _swApp;
+        private int _addinId;
+        private Timer _fileWatcher;
+        private string _lastSavedFile = "";
+        private DateTime _lastSaveTime = DateTime.MinValue;
+
+        public bool ConnectToSW(object thisSW, int cookie)
+        {
+            try
+            {
+                _swApp = (ISldWorks)thisSW;
+                _addinId = cookie;
+                
+                // Set callback info
+                _swApp.SetAddinCallbackInfo2(0, this, cookie);
+                
+                // Start timer to check for saves
+                _fileWatcher = new Timer(500); // Check every 500ms
+                _fileWatcher.Elapsed += CheckForFileSave;
+                _fileWatcher.Start();
+                
+                Debug.WriteLine("PLM Add-In: Successfully connected to SolidWorks");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"PLM Add-In: Error connecting to SolidWorks - {ex.Message}");
+                return false;
+            }
+        }
+
+        public bool DisconnectFromSW()
+        {
+            try
+            {
+                if (_fileWatcher != null)
+                {
+                    _fileWatcher.Stop();
+                    _fileWatcher.Dispose();
+                }
+                
+                Debug.WriteLine("PLM Add-In: Disconnected from SolidWorks");
+                
+                if (_swApp != null)
+                {
+                    Marshal.ReleaseComObject(_swApp);
+                    _swApp = null;
+                }
+                
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"PLM Add-In: Error disconnecting from SolidWorks - {ex.Message}");
+                return false;
+            }
+        }
+        
+        private void CheckForFileSave(object sender, ElapsedEventArgs e)
+        {
+            try
+            {
+                // Debug log to verify timer is running
+                File.AppendAllText(@"D:\Anurag\test\PLM_Timer_Debug.txt", 
+                    $"[{DateTime.Now:HH:mm:ss}] Timer tick\n");
+                
+                if (_swApp == null)
+                {
+                    File.AppendAllText(@"D:\Anurag\test\PLM_Timer_Debug.txt", 
+                        $"[{DateTime.Now:HH:mm:ss}] _swApp is null\n");
+                    return;
+                }
+                
+                ModelDoc2 activeDoc = (ModelDoc2)_swApp.ActiveDoc;
+                if (activeDoc == null)
+                {
+                    File.AppendAllText(@"D:\Anurag\test\PLM_Timer_Debug.txt", 
+                        $"[{DateTime.Now:HH:mm:ss}] No active document\n");
+                    return;
+                }
+                
+                string filePath = activeDoc.GetPathName();
+                File.AppendAllText(@"D:\Anurag\test\PLM_Timer_Debug.txt", 
+                    $"[{DateTime.Now:HH:mm:ss}] File: {filePath}\n");
+                
+                if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
+                {
+                    FileInfo fileInfo = new FileInfo(filePath);
+                    
+                    File.AppendAllText(@"D:\Anurag\test\PLM_Timer_Debug.txt", 
+                        $"[{DateTime.Now:HH:mm:ss}] LastWriteTime: {fileInfo.LastWriteTime}, LastSaveTime: {_lastSaveTime}\n");
+                    
+                    // Check if file was modified recently (within last 2 seconds)
+                    if (fileInfo.LastWriteTime > _lastSaveTime.AddSeconds(-2) && 
+                        filePath != _lastSavedFile)
+                    {
+                        _lastSavedFile = filePath;
+                        _lastSaveTime = DateTime.Now;
+                        
+                        File.AppendAllText(@"D:\Anurag\test\PLM_Timer_Debug.txt", 
+                            $"[{DateTime.Now:HH:mm:ss}] SAVE DETECTED! Calling HandleFileSave\n");
+                        
+                        HandleFileSave(filePath);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                File.AppendAllText(@"D:\Anurag\test\PLM_Timer_Debug.txt", 
+                    $"[{DateTime.Now:HH:mm:ss}] ERROR: {ex.Message}\n");
+            }
+        }
+
+        // This gets called after file save
+        public int HandleFileSaveAs()
+        {
+            try
+            {
+                ModelDoc2 activeDoc = (ModelDoc2)_swApp.ActiveDoc;
+                if (activeDoc != null)
+                {
+                    string filePath = activeDoc.GetPathName();
+                    HandleFileSave(filePath);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"PLM Add-In: Error in HandleFileSaveAs - {ex.Message}");
+            }
+            return 0;
+        }
+
+        private void HandleFileSave(string filePath)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(filePath))
+                {
+                    Debug.WriteLine("PLM Add-In: File path is empty");
+                    return;
+                }
+
+                if (!File.Exists(filePath))
+                {
+                    Debug.WriteLine($"PLM Add-In: File does not exist - {filePath}");
+                    return;
+                }
+
+                FileInfo fileInfo = new FileInfo(filePath);
+                string fileName = fileInfo.Name;
+                string fileDirectory = fileInfo.DirectoryName;
+
+                // Create working directory if it doesn't exist
+                string workingDir = Path.Combine(fileDirectory, "working");
+                if (!Directory.Exists(workingDir))
+                {
+                    Directory.CreateDirectory(workingDir);
+                    Debug.WriteLine($"PLM Add-In: Created working directory - {workingDir}");
+                }
+
+                // Copy file to working directory
+                string workingFilePath = Path.Combine(workingDir, fileName);
+                File.Copy(filePath, workingFilePath, overwrite: true);
+                
+                // Write to log file for verification
+                string logPath = Path.Combine(fileDirectory, "PLM_Log.txt");
+                File.AppendAllText(logPath, $"[{DateTime.Now}] File copied: {fileName} -> working\\{fileName}\n");
+
+                Debug.WriteLine($"PLM Add-In: File saved to working directory");
+                Debug.WriteLine($"  File Name: {fileName}");
+                Debug.WriteLine($"  File Path: {filePath}");
+                Debug.WriteLine($"  Working Path: {workingFilePath}");
+                Debug.WriteLine($"  File Size: {fileInfo.Length} bytes");
+                Debug.WriteLine($"  Timestamp: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+
+                // Get current user as author
+                string author = System.Environment.UserName;
+                Debug.WriteLine($"  Author: {author}");
+
+                // Update file metadata (extended properties)
+                UpdateFileMetadata(workingFilePath, author);
+
+                Debug.WriteLine("PLM Add-In: File successfully processed");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"PLM Add-In: Error handling file save - {ex.Message}");
+                Debug.WriteLine($"  Stack Trace: {ex.StackTrace}");
+            }
+        }
+
+        private void UpdateFileMetadata(string filePath, string author)
+        {
+            try
+            {
+                // Update file timestamps
+                File.SetLastWriteTime(filePath, DateTime.Now);
+                File.SetLastAccessTime(filePath, DateTime.Now);
+
+                Debug.WriteLine($"PLM Add-In: Metadata updated for {Path.GetFileName(filePath)}");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"PLM Add-In: Error updating metadata - {ex.Message}");
+            }
+        }
+
+        #region COM Registration
+
+        [ComRegisterFunction]
+        public static void RegisterFunction(Type t)
+        {
+            try
+            {
+                Microsoft.Win32.RegistryKey hklm = Microsoft.Win32.Registry.LocalMachine;
+                Microsoft.Win32.RegistryKey hkcu = Microsoft.Win32.Registry.CurrentUser;
+
+                string keyname = "SOFTWARE\\SolidWorks\\Addins\\{A7E8F9D2-3C4B-5E6A-7F8D-9C0B1A2E3D4F}";
+                Microsoft.Win32.RegistryKey addinkey = hklm.CreateSubKey(keyname);
+                addinkey.SetValue(null, 0);
+                addinkey.SetValue("Description", "PLM Add-In for SolidWorks");
+                addinkey.SetValue("Title", "PLM Add-In");
+
+                keyname = "Software\\SolidWorks\\AddInsStartup\\{A7E8F9D2-3C4B-5E6A-7F8D-9C0B1A2E3D4F}";
+                addinkey = hkcu.CreateSubKey(keyname);
+                addinkey.SetValue(null, 1, Microsoft.Win32.RegistryValueKind.DWord);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"PLM Add-In: Error during registration - {ex.Message}");
+            }
+        }
+
+        [ComUnregisterFunction]
+        public static void UnregisterFunction(Type t)
+        {
+            try
+            {
+                Microsoft.Win32.RegistryKey hklm = Microsoft.Win32.Registry.LocalMachine;
+                Microsoft.Win32.RegistryKey hkcu = Microsoft.Win32.Registry.CurrentUser;
+
+                string keyname = "SOFTWARE\\SolidWorks\\Addins\\{A7E8F9D2-3C4B-5E6A-7F8D-9C0B1A2E3D4F}";
+                hklm.DeleteSubKey(keyname);
+
+                keyname = "Software\\SolidWorks\\AddInsStartup\\{A7E8F9D2-3C4B-5E6A-7F8D-9C0B1A2E3D4F}";
+                hkcu.DeleteSubKey(keyname);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"PLM Add-In: Error during unregistration - {ex.Message}");
+            }
+        }
+
+        #endregion
+    }
+}

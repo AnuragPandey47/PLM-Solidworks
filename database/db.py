@@ -95,6 +95,8 @@ CREATE TABLE IF NOT EXISTS files (
     locked_by TEXT,
     lock_timestamp TIMESTAMP,
     vault_path TEXT NOT NULL,
+    metadata_file_path TEXT,
+    file_state TEXT DEFAULT 'Working',
     is_active BOOLEAN DEFAULT 1,
     
     FOREIGN KEY (project_id) REFERENCES projects(project_id),
@@ -327,15 +329,16 @@ WHERE lock_release_timestamp IS NULL
     # ========================
     
     def create_file(self, project_id: int, file_name: str, file_type: str, 
-                   vault_path: str, description: str = "") -> Dict[str, Any]:
+                   vault_path: str, description: str = "", metadata_file_path: str = "") -> Dict[str, Any]:
         """Create new file record in vault
         
         Args:
             project_id: Project ID
             file_name: File name (e.g., "BracketBase_Part")
             file_type: Type: PART, ASSEMBLY, DRAWING, OTHER
-            vault_path: Full vault path to file
+            vault_path: Vault path to file folder (e.g., Projects/ProjectName/Parts/FileName/)
             description: Optional description
+            metadata_file_path: Path to part_meta.json file
             
         Returns:
             dict with file_id, plm_id
@@ -349,16 +352,52 @@ WHERE lock_release_timestamp IS NULL
             plm_id = self._get_next_plm_id(cursor, type_code)
             
             try:
+                # Create folder structure on disk
+                vault_path_obj = Path(vault_path)
+                vault_path_obj.mkdir(parents=True, exist_ok=True)
+                
+                # Create metadata file if path provided
+                if metadata_file_path:
+                    metadata_path_obj = Path(metadata_file_path)
+                    if not metadata_path_obj.exists():
+                        initial_metadata = {
+                            "latest_version": "v000",
+                            "released_version": None,
+                            "state": "Working"
+                        }
+                        with open(metadata_path_obj, 'w') as f:
+                            json.dump(initial_metadata, f, indent=2)
+                
+                # Get project to find project vault path
+                cursor.execute("SELECT vault_path FROM projects WHERE project_id = ?", (project_id,))
+                project_row = cursor.fetchone()
+                if not project_row:
+                    raise Exception(f"Project {project_id} not found")
+                
+                project_vault_path = Path(project_row[0])
+                
+                # Create Working/Parts/ folder (flat, not subfolders per file)
+                working_parts_folder = project_vault_path / "Working" / "Parts"
+                working_parts_folder.mkdir(parents=True, exist_ok=True)
+                
+                # Create actual SLDPRT file in Working/Parts/
+                ext_map = {"PART": ".SLDPRT", "ASSEMBLY": ".SLDASM", "DRAWING": ".SLDDRW"}
+                ext = ext_map.get(file_type, ".txt")
+                working_file = working_parts_folder / f"{file_name}{ext}"
+                working_file.touch()  # Create empty file
+                
+                # Insert into database
                 cursor.execute("""
                     INSERT INTO files (plm_id, project_id, file_name, file_type, 
-                                      vault_path, description)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                """, (plm_id, project_id, file_name, file_type, vault_path, description))
+                                      vault_path, description, metadata_file_path, file_state)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """, (plm_id, project_id, file_name, file_type, vault_path, description, 
+                      metadata_file_path, "Working"))
                 
                 conn.commit()
                 file_id = cursor.lastrowid
                 
-                logger.info(f"Created file: {file_name} ({plm_id})")
+                logger.info(f"Created file: {file_name} ({plm_id}) at {vault_path}")
                 return {
                     "file_id": file_id,
                     "plm_id": plm_id,
